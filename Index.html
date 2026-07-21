@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Gastos del Hogar</title>
+    <style>
+        /* ── Variables de tema ── */
+        :root {
+            --bg-page:      linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-card:      #ffffff;
+            --bg-subtle:    #f8f9fa;
+            --border:       #e0e0e0;
+            --text-primary: #333333;
+            --text-secondary:#555555;
+            --text-muted:   #999999;
+            --accent:       #667eea;
+            --accent2:      #764ba2;
+            --success:      #11998e;
+            --danger-start: #eb3349;
+            --danger-end:   #f45c43;
+            --shadow:       rgba(0,0,0,0.15);
+            --toggle-bg:    #e0e0e0;
+            --toggle-knob:  #fff;
+            --toggle-icon:  "🌙";
+        }
+
+        [data-theme="dark"] {
+            --bg-page:      linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-card:      #1e2235;
+            --bg-subtle:    #252b3b;
+            --border:       #3a4060;
+            --text-primary: #e8eaf6;
+            --text-secondary:#9fa8da;
+            --text-muted:   #5c6180;
+            --accent:       #7986cb;
+            --accent2:      #9575cd;
+            --success:      #26a69a;
+            --danger-start: #ef5350;
+            --danger-end:   #e53935;
+            --shadow:       rgba(0,0,0,0.4);
+            --toggle-bg:    #667eea;
+            --toggle-knob:  #fff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-page);
+            min-height: 100vh;
+            padding: 16px;
+            transition: background 0.4s ease;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: clamp(1.1rem, 4.5vw, 2rem);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* ── Toggle modo oscuro ── */
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle .label {
+            color: rgba(255,255,255,0.85);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .toggle-track {
+            width: 46px;
+            height: 26px;
+            background: var(--toggle-bg);
+            border-radius: 50px;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: var(--toggle-knob);
+            border-radius: 50%;
+            transition: transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        [data-theme="dark"] .toggle-knob {
+            transform: translateX(20px);
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: clamp(16px, 4vw, 28px);
+            margin-bottom: 16px;
+            box-shadow: 0 10px 30px var(--shadow);
+            transition: background 0.4s, box-shadow 0.4s;
+        }
+
+        .card h2 {
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-size: clamp(1rem, 3.5vw, 1.25rem);
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+            transition: color 0.4s, border-color 0.4s;
+        }
+
+        /* ── Formularios ── */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: end;
+        }
+
+        @media (max-width: 520px) {
+            .form-row { grid-template-columns: 1fr; }
+            .form-row button { width: 100%; }
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+
+        .form-group label {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: 600;
+            transition: color 0.4s;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            transition: border-color 0.3s, background 0.4s, color 0.4s;
+            -webkit-appearance: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        input::placeholder { color: var(--text-muted); }
+
+        /* ── Botones ── */
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s, opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        button:active { transform: scale(0.97); }
+
+        @media (hover: hover) {
+            button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+        }
+
+        .btn-primary  { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; }
+        .btn-success  { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; }
+        .btn-danger   {
+            background: linear-gradient(135deg, var(--danger-start), var(--danger-end));
+            color: #fff;
+            padding: 6px 11px;
+            font-size: 0.78rem;
+        }
+        .btn-calculate {
+            background: linear-gradient(135deg, #f7971e, #ffd200);
+            color: #333;
+            font-size: clamp(0.95rem, 3vw, 1.1rem);
+            padding: 14px 20px;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 12px;
+        }
+
+        /* ── Tablas ── */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: 8px;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 280px; }
+
+        th, td {
+            padding: 11px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            transition: border-color 0.4s;
+        }
+
+        th {
+            background: var(--bg-subtle);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            transition: background 0.4s, color 0.4s;
+        }
+
+        td {
+            color: var(--text-primary);
+            font-size: 0.92rem;
+            transition: color 0.4s;
+        }
+
+        td:first-child, th:first-child { white-space: normal; min-width: 100px; }
+
+        /* ── Estados vacíos ── */
+        .empty-state {
+            text-align: center;
+            padding: 24px 16px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-style: italic;
+            transition: color 0.4s;
+        }
+
+        /* ── Total gastos ── */
+        .total-gastos {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-subtle);
+            padding: 13px 16px;
+            border-radius: 10px;
+            margin-top: 14px;
+            gap: 8px;
+            flex-wrap: wrap;
+            transition: background 0.4s;
+        }
+
+        .total-gastos span       { font-size: 1rem; font-weight: 600; color: var(--text-primary); transition: color 0.4s; }
+        .total-gastos .monto     { font-size: clamp(1.1rem, 4vw, 1.4rem); color: var(--accent); }
+
+        /* ── Resultados ── */
+        .resultado-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 16px;
+            background: var(--bg-subtle);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            gap: 12px;
+            flex-wrap: wrap;
+            transition: background 0.4s;
+        }
+
+        .resultado-info      { flex: 1; min-width: 150px; }
+        .resultado-item .nombre  { font-weight: 600; color: var(--text-primary); font-size: 1rem; transition: color 0.4s; }
+        .resultado-item .detalle { font-size: 0.8rem; color: var(--text-secondary); margin-top: 3px; transition: color 0.4s; }
+        .resultado-item .aporte  {
+            font-size: clamp(1.1rem, 4vw, 1.25rem);
+            font-weight: 700;
+            color: var(--success);
+            white-space: nowrap;
+        }
+
+        .progress-bar {
+            height: 7px;
+            background: var(--border);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+            transition: background 0.4s;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--accent2));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 400px) { .col-proporcion { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏠 Calculadora de Gastos del Hogar</h1>
+            <div class="theme-toggle" onclick="toggleTheme()" title="Cambiar modo">
+                <span class="label" id="themeLabel">Oscuro</span>
+                <div class="toggle-track">
+                    <div class="toggle-knob" id="themeKnob">🌙</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integrantes -->
+        <div class="card">
+            <h2>👥 Integrantes del Hogar</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombreIntegrante">Nombre</label>
+                    <input type="text" id="nombreIntegrante" placeholder="Ej: Juan">
+                </div>
+                <div class="form-group">
+                    <label for="ingresoIntegrante">Ingreso mensual ($)</label>
+                    <input type="number" id="ingresoIntegrante" placeholder="Ej: 800000" min="0">
+                </div>
+                <button class="btn-primary" onclick="agregarIntegrante()">Agregar</button>
+            </div>
+            <div id="emptyIntegrantes" class="empty-state">Agrega integrantes para comenzar</div>
+            <div class="table-wrapper" id="wrapperIntegrantes" style="display:none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Ingreso</th>
+                            <th class="col-proporcion">Proporción</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyIntegrantes"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gastos -->
+        <div class="card">
+            <h2>💸 Gastos del Hogar</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="descripcionGasto">Descripción</label>
+                    <input type="text" id="descripcionGasto" placeholder="Ej: Arriendo">
+                </div>
+                <div class="form-group">
+                    <label for="montoGasto">Monto ($)</label>
+                    <input type="number" id="montoGasto" placeholder="Ej: 450000" min="0">
+                </div>
+                <button class="btn-success" onclick="agregarGasto()">Agregar</button>
+            </div>
+            <div id="emptyGastos" class="empty-state">Agrega los gastos comunes del hogar</div>
+            <div class="table-wrapper" id="wrapperGastos" style="display:none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Monto</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyGastos"></tbody>
+                </table>
+            </div>
+            <div class="total-gastos" id="totalGastosBox" style="display:none;">
+                <span>Total Gastos:</span>
+                <span class="monto" id="totalGastosValor">$0</span>
+            </div>
+        </div>
+
+        <!-- Acciones -->
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px;">
+            <button class="btn-calculate" style="flex:1; margin-top:0;" onclick="calcular()">📊 Calcular Distribución</button>
+            <button class="btn-danger" style="padding:14px 20px; font-size:0.9rem; border-radius:12px;" onclick="limpiarTodo()">🗑️ Limpiar todo</button>
+        </div>
+
+        <!-- Resultados -->
+        <div class="card" id="resultadosCard" style="display:none; margin-top:16px;">
+            <h2>📋 Distribución Proporcional</h2>
+            <div id="resultadosBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY_INT  = 'hogar_integrantes';
+        const STORAGE_KEY_GAS  = 'hogar_gastos';
+
+        let integrantes = JSON.parse(localStorage.getItem(STORAGE_KEY_INT) || '[]');
+        let gastos      = JSON.parse(localStorage.getItem(STORAGE_KEY_GAS) || '[]');
+
+        const fmt = n => '$' + Math.round(n).toLocaleString('es-CL');
+
+        function guardar() {
+            localStorage.setItem(STORAGE_KEY_INT, JSON.stringify(integrantes));
+            localStorage.setItem(STORAGE_KEY_GAS,  JSON.stringify(gastos));
+        }
+
+        /* ──────────────── Tema ──────────────── */
+        function toggleTheme() {
+            const html   = document.documentElement;
+            const isDark = html.getAttribute('data-theme') === 'dark';
+            const next   = isDark ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            document.getElementById('themeKnob').textContent  = isDark ? '🌙' : '☀️';
+            document.getElementById('themeLabel').textContent = isDark ? 'Oscuro' : 'Claro';
+            localStorage.setItem('theme', next);
+        }
+
+        /* Restaurar tema guardado */
+        (function () {
+            const saved       = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme       = saved || (prefersDark ? 'dark' : 'light');
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('themeKnob').textContent  = '☀️';
+                document.getElementById('themeLabel').textContent = 'Claro';
+            }
+        })();
+
+        /* ──────────────── Integrantes ──────────────── */
+        function agregarIntegrante() {
+            const nombre  = document.getElementById('nombreIntegrante').value.trim();
+            const ingreso = parseFloat(document.getElementById('ingresoIntegrante').value);
+            if (!nombre)                  { alert('Ingresa el nombre del integrante'); return; }
+            if (!ingreso || ingreso <= 0) { alert('Ingresa un ingreso válido');        return; }
+
+            integrantes.push({ nombre, ingreso });
+            document.getElementById('nombreIntegrante').value  = '';
+            document.getElementById('ingresoIntegrante').value = '';
+            guardar();
+            renderIntegrantes();
+            ocultarResultados();
+        }
+
+        function eliminarIntegrante(idx) {
+            integrantes.splice(idx, 1);
+            guardar();
+            renderIntegrantes();
+            ocultarResultados();
+        }
+
+        function renderIntegrantes() {
+            const empty   = document.getElementById('emptyIntegrantes');
+            const wrapper = document.getElementById('wrapperIntegrantes');
+            const tbody   = document.getElementById('bodyIntegrantes');
+
+            if (integrantes.length === 0) {
+                empty.style.display = 'block'; wrapper.style.display = 'none'; return;
+            }
+            empty.style.display = 'none'; wrapper.style.display = 'block';
+
+            const totalIngresos = integrantes.reduce((s, i) => s + i.ingreso, 0);
+            tbody.innerHTML = integrantes.map((int, idx) => {
+                const prop = ((int.ingreso / totalIngresos) * 100).toFixed(1);
+                return `<tr>
+                    <td>${int.nombre}</td>
+                    <td>${fmt(int.ingreso)}</td>
+                    <td class="col-proporcion">${prop}%</td>
+                    <td><button class="btn-danger" onclick="eliminarIntegrante(${idx})">✕ Quitar</button></td>
+                </tr>`;
+            }).join('');
+        }
+
+        /* ──────────────── Gastos ──────────────── */
+        function agregarGasto() {
+            const descripcion = document.getElementById('descripcionGasto').value.trim();
+            const monto       = parseFloat(document.getElementById('montoGasto').value);
+            if (!descripcion)         { alert('Ingresa la descripción del gasto'); return; }
+            if (!monto || monto <= 0) { alert('Ingresa un monto válido');          return; }
+
+            gastos.push({ descripcion, monto });
+            document.getElementById('descripcionGasto').value = '';
+            document.getElementById('montoGasto').value       = '';
+            guardar();
+            renderGastos();
+            ocultarResultados();
+        }
+
+        function eliminarGasto(idx) {
+            gastos.splice(idx, 1);
+            guardar();
+            renderGastos();
+            ocultarResultados();
+        }
+
+        function renderGastos() {
+            const empty    = document.getElementById('emptyGastos');
+            const wrapper  = document.getElementById('wrapperGastos');
+            const tbody    = document.getElementById('bodyGastos');
+            const totalBox = document.getElementById('totalGastosBox');
+
+            if (gastos.length === 0) {
+                empty.style.display = 'block'; wrapper.style.display = 'none';
+                totalBox.style.display = 'none'; return;
+            }
+            empty.style.display = 'none'; wrapper.style.display = 'block'; totalBox.style.display = 'flex';
+
+            const total = gastos.reduce((s, g) => s + g.monto, 0);
+            document.getElementById('totalGastosValor').textContent = fmt(total);
+
+            tbody.innerHTML = gastos.map((g, idx) => `
+                <tr>
+                    <td>${g.descripcion}</td>
+                    <td>${fmt(g.monto)}</td>
+                    <td><button class="btn-danger" onclick="eliminarGasto(${idx})">✕ Quitar</button></td>
+                </tr>`).join('');
+        }
+
+        /* ──────────────── Limpiar todo ──────────────── */
+        function limpiarTodo() {
+            if (!confirm('¿Borrar todos los integrantes y gastos guardados?')) return;
+            integrantes = [];
+            gastos      = [];
+            guardar();
+            renderIntegrantes();
+            renderGastos();
+            ocultarResultados();
+        }
+
+        /* ──────────────── Calcular ──────────────── */
+        function ocultarResultados() {
+            document.getElementById('resultadosCard').style.display = 'none';
+        }
+
+        function calcular() {
+            if (integrantes.length === 0) { alert('Agrega al menos un integrante'); return; }
+            if (gastos.length === 0)       { alert('Agrega al menos un gasto');      return; }
+
+            const totalGastos   = gastos.reduce((s, g) => s + g.monto, 0);
+            const totalIngresos = integrantes.reduce((s, i) => s + i.ingreso, 0);
+
+            const resultadosBody = document.getElementById('resultadosBody');
+            resultadosBody.innerHTML = '';
+
+            integrantes.forEach(int => {
+                const proporcion = int.ingreso / totalIngresos;
+                const aporte     = totalGastos * proporcion;
+                const porcentaje = (proporcion * 100).toFixed(1);
+
+                const div = document.createElement('div');
+                div.className = 'resultado-item';
+                div.innerHTML = `
+                    <div class="resultado-info">
+                        <div class="nombre">${int.nombre}</div>
+                        <div class="detalle">Ingreso: ${fmt(int.ingreso)} · ${porcentaje}% del hogar</div>
+                        <div class="progress-bar">
+                            <div class="fill" style="width:${porcentaje}%"></div>
+                        </div>
+                    </div>
+                    <div class="aporte">${fmt(aporte)}</div>
+                `;
+                resultadosBody.appendChild(div);
+            });
+
+            const resumen = document.createElement('div');
+            resumen.className = 'total-gastos';
+            resumen.style.marginTop = '16px';
+            resumen.innerHTML = `
+                <span>Total a cubrir entre todos:</span>
+                <span class="monto">${fmt(totalGastos)}</span>
+            `;
+            resultadosBody.appendChild(resumen);
+
+            const card = document.getElementById('resultadosCard');
+            card.style.display = 'block';
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        /* ── Enter en inputs ── */
+        document.getElementById('ingresoIntegrante').addEventListener('keypress', e => { if (e.key === 'Enter') agregarIntegrante(); });
+        document.getElementById('montoGasto').addEventListener('keypress',        e => { if (e.key === 'Enter') agregarGasto(); });
+
+        /* ── Cargar datos al inicio ── */
+        renderIntegrantes();
+        renderGastos();
+    </script>
+</body>
+</html>
