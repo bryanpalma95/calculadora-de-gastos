@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Gastos</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #22222f;
+      --border: #2e2e3e;
+      --accent: #7c6af7;
+      --green: #34d399;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --text: #e8e8f0;
+      --muted: #8888a0;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 80px;
+    }
+
+    .header {
+      max-width: 720px;
+      margin: 0 auto 28px;
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 4px;
+    }
+
+    .header h1 span { color: var(--accent); }
+    .header p { font-size: 0.9rem; color: var(--muted); }
+
+    /* ── RESUMEN ── */
+    .resumen {
+      max-width: 720px;
+      margin: 0 auto 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .res-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+    }
+
+    .res-card .lbl {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .res-card .val {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .val-ingresos { color: var(--green); }
+    .val-gastos   { color: var(--red); }
+    .val-balance  { color: var(--accent); }
+    .val-balance.negativo { color: var(--red); }
+
+    /* ── BARRA ── */
+    .barra-wrap {
+      max-width: 720px;
+      margin: 0 auto 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+    }
+
+    .barra-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .barra-bg {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .barra-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: linear-gradient(90deg, var(--green), var(--accent));
+      transition: width 0.4s ease;
+    }
+
+    .barra-fill.peligro { background: linear-gradient(90deg, var(--yellow), var(--red)); }
+
+    /* ── FORM ── */
+    .form-wrap {
+      max-width: 720px;
+      margin: 0 auto 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .form-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 130px 130px 110px auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+
+    .field label { font-size: 11px; color: var(--muted); font-weight: 500; }
+
+    .field input, .field select {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+
+    .field input:focus, .field select:focus { border-color: var(--accent); }
+    .field input::placeholder { color: var(--muted); }
+
+    .btn-add {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+      height: 38px;
+    }
+
+    .btn-add:hover { background: #6a58e0; transform: translateY(-1px); }
+
+    /* ── FILTROS ── */
+    .filtros {
+      max-width: 720px;
+      margin: 0 auto 14px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filtro-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .filtro-btn.activo {
+      background: rgba(124,106,247,0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .filtros-right { margin-left: auto; }
+
+    .btn-limpiar {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-limpiar:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── LISTA ── */
+    .lista {
+      max-width: 720px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .item-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .icon-gasto   { background: rgba(248,113,113,0.12); }
+    .icon-ingreso { background: rgba(52,211,153,0.12); }
+
+    .item-info { flex: 1; min-width: 0; }
+
+    .item-desc {
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    .item-monto {
+      font-size: 15px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .monto-gasto   { color: var(--red); }
+    .monto-ingreso { color: var(--green); }
+
+    .btn-del {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-del:hover { color: var(--red); background: rgba(248,113,113,0.1); }
+
+    .empty {
+      text-align: center;
+      padding: 48px 24px;
+      color: var(--muted);
+      font-size: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .empty span { font-size: 32px; display: block; margin-bottom: 10px; }
+
+    /* ── CATEGORÍAS ── */
+    .cat-wrap {
+      max-width: 720px;
+      margin: 20px auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+    }
+
+    .cat-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .cat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .cat-nombre { font-size: 13px; min-width: 130px; }
+
+    .cat-barra-bg {
+      flex: 1;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .cat-barra-fill {
+      height: 100%;
+      border-radius: 100px;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
+
+    .cat-monto { font-size: 12px; color: var(--muted); min-width: 80px; text-align: right; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .form-row { grid-template-columns: 1fr 1fr; }
+      .resumen  { grid-template-columns: 1fr; }
+      .btn-add  { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Calculadora de <span>Gastos</span></h1>
+  <p>Registra ingresos y gastos para controlar tu presupuesto — los datos se guardan en tu navegador</p>
+</div>
+
+<!-- RESUMEN -->
+<div class="resumen">
+  <div class="res-card">
+    <div class="lbl">💰 Ingresos</div>
+    <div class="val val-ingresos" id="totalIngresos">$0</div>
+  </div>
+  <div class="res-card">
+    <div class="lbl">💸 Gastos</div>
+    <div class="val val-gastos" id="totalGastos">$0</div>
+  </div>
+  <div class="res-card">
+    <div class="lbl">📊 Balance</div>
+    <div class="val val-balance" id="balance">$0</div>
+  </div>
+</div>
+
+<!-- BARRA -->
+<div class="barra-wrap">
+  <div class="barra-label">
+    <span>Gastos vs Ingresos</span>
+    <span id="porcentaje">0%</span>
+  </div>
+  <div class="barra-bg">
+    <div class="barra-fill" id="barraFill" style="width:0%"></div>
+  </div>
+</div>
+
+<!-- FORM -->
+<div class="form-wrap">
+  <div class="form-title">+ Agregar movimiento</div>
+  <div class="form-row">
+    <div class="field">
+      <label>Descripción</label>
+      <input type="text" id="desc" placeholder="Ej: Arriendo, Sueldo..." />
+    </div>
+    <div class="field">
+      <label>Monto ($)</label>
+      <input type="number" id="monto" placeholder="0" min="0" step="100" />
+    </div>
+    <div class="field">
+      <label>Categoría</label>
+      <select id="categoria">
+        <option value="Vivienda">🏠 Vivienda</option>
+        <option value="Alimentación">🛒 Alimentación</option>
+        <option value="Transporte">🚗 Transporte</option>
+        <option value="Salud">🏥 Salud</option>
+        <option value="Educación">📚 Educación</option>
+        <option value="Entretenimiento">🎮 Entretenimiento</option>
+        <option value="Ropa">👕 Ropa</option>
+        <option value="Servicios">💡 Servicios</option>
+        <option value="Sueldo">💼 Sueldo</option>
+        <option value="Otro">📦 Otro</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Tipo</label>
+      <select id="tipo">
+        <option value="gasto">🔴 Gasto</option>
+        <option value="ingreso">🟢 Ingreso</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="agregar()">Agregar</button>
+  </div>
+</div>
+
+<!-- FILTROS -->
+<div class="filtros">
+  <button class="filtro-btn activo" onclick="filtrar('todos',this)">Todos</button>
+  <button class="filtro-btn" onclick="filtrar('gasto',this)">Solo gastos</button>
+  <button class="filtro-btn" onclick="filtrar('ingreso',this)">Solo ingresos</button>
+  <div class="filtros-right">
+    <button class="btn-limpiar" onclick="limpiarTodo()">🗑 Limpiar todo</button>
+  </div>
+</div>
+
+<!-- LISTA -->
+<div class="lista" id="lista"></div>
+
+<!-- CATEGORÍAS -->
+<div class="cat-wrap" id="catWrap" style="display:none">
+  <div class="cat-title">📊 Gastos por categoría</div>
+  <div id="catLista"></div>
+</div>
+
+<script>
+  const EMOJIS = {
+    'Vivienda':'🏠','Alimentación':'🛒','Transporte':'🚗','Salud':'🏥',
+    'Educación':'📚','Entretenimiento':'🎮','Ropa':'👕','Servicios':'💡',
+    'Sueldo':'💼','Otro':'📦'
+  };
+
+  let movimientos = JSON.parse(localStorage.getItem('gastos_v1') || '[]');
+  let filtroActual = 'todos';
+
+  function guardar() {
+    localStorage.setItem('gastos_v1', JSON.stringify(movimientos));
+  }
+
+  function fmt(n) {
+    return '$' + Math.abs(n).toLocaleString('es-CL');
+  }
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function agregar() {
+    const desc  = document.getElementById('desc').value.trim();
+    const monto = parseFloat(document.getElementById('monto').value);
+    const cat   = document.getElementById('categoria').value;
+    const tipo  = document.getElementById('tipo').value;
+
+    if (!desc)          { alert('Ingresa una descripción'); return; }
+    if (!monto || monto <= 0) { alert('Ingresa un monto válido'); return; }
+
+    movimientos.unshift({
+      id: Date.now(), desc, monto, cat, tipo,
+      fecha: new Date().toLocaleDateString('es-CL', { day:'2-digit', month:'short' })
+    });
+
+    guardar();
+    renderizar();
+    document.getElementById('desc').value  = '';
+    document.getElementById('monto').value = '';
+    document.getElementById('desc').focus();
+  }
+
+  function eliminar(id) {
+    movimientos = movimientos.filter(m => m.id !== id);
+    guardar();
+    renderizar();
+  }
+
+  function filtrar(tipo, btn) {
+    filtroActual = tipo;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    renderizar();
+  }
+
+  function limpiarTodo() {
+    if (!movimientos.length) return;
+    if (confirm('¿Eliminar todos los movimientos?')) {
+      movimientos = [];
+      guardar();
+      renderizar();
+    }
+  }
+
+  function renderizar() {
+    const totalI = movimientos.filter(m=>m.tipo==='ingreso').reduce((s,m)=>s+m.monto,0);
+    const totalG = movimientos.filter(m=>m.tipo==='gasto').reduce((s,m)=>s+m.monto,0);
+    const bal    = totalI - totalG;
+    const pct    = totalI > 0 ? Math.min((totalG/totalI)*100,100) : 0;
+
+    document.getElementById('totalIngresos').textContent = fmt(totalI);
+    document.getElementById('totalGastos').textContent   = fmt(totalG);
+
+    const balEl = document.getElementById('balance');
+    balEl.textContent = (bal < 0 ? '-' : '') + fmt(bal);
+    balEl.className   = 'val val-balance' + (bal < 0 ? ' negativo' : '');
+
+    document.getElementById('porcentaje').textContent = Math.round(pct) + '%';
+    const barra = document.getElementById('barraFill');
+    barra.style.width = pct + '%';
+    barra.className   = 'barra-fill' + (pct > 80 ? ' peligro' : '');
+
+    // Lista
+    const lista     = document.getElementById('lista');
+    const filtrados = filtroActual === 'todos'
+      ? movimientos
+      : movimientos.filter(m => m.tipo === filtroActual);
+
+    if (!filtrados.length) {
+      lista.innerHTML = `<div class="empty"><span>💳</span>No hay movimientos aquí.<br>Agrega tu primer registro arriba.</div>`;
+    } else {
+      lista.innerHTML = filtrados.map(m => `
+        <div class="item">
+          <div class="item-icon ${m.tipo==='gasto'?'icon-gasto':'icon-ingreso'}">${EMOJIS[m.cat]||'📦'}</div>
+          <div class="item-info">
+            <div class="item-desc">${esc(m.desc)}</div>
+            <div class="item-meta">${m.cat} · ${m.fecha}</div>
+          </div>
+          <div class="item-monto ${m.tipo==='gasto'?'monto-gasto':'monto-ingreso'}">
+            ${m.tipo==='gasto'?'−':'+'}${fmt(m.monto)}
+          </div>
+          <button class="btn-del" onclick="eliminar(${m.id})" title="Eliminar">✕</button>
+        </div>
+      `).join('');
+    }
+
+    // Categorías
+    const catWrap = document.getElementById('catWrap');
+    const gastos  = movimientos.filter(m=>m.tipo==='gasto');
+
+    if (!gastos.length) {
+      catWrap.style.display = 'none';
+    } else {
+      catWrap.style.display = 'block';
+      const porCat = {};
+      gastos.forEach(m => { porCat[m.cat] = (porCat[m.cat]||0) + m.monto; });
+      const maxVal = Math.max(...Object.values(porCat));
+      document.getElementById('catLista').innerHTML = Object.entries(porCat)
+        .sort((a,b) => b[1]-a[1])
+        .map(([cat, total]) => `
+          <div class="cat-item">
+            <div class="cat-nombre">${EMOJIS[cat]||'📦'} ${cat}</div>
+            <div class="cat-barra-bg">
+              <div class="cat-barra-fill" style="width:${(total/maxVal)*100}%"></div>
+            </div>
+            <div class="cat-monto">${fmt(total)}</div>
+          </div>
+        `).join('');
+    }
+  }
+
+  // Enter para agregar
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && ['INPUT'].includes(document.activeElement.tagName)) agregar();
+  });
+
+  renderizar();
+</script>
+
+</body>
+</html>
