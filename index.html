@@ -206,7 +206,7 @@
         <div class="fg"><label>Nombre</label>
           <input type="text" id="iNombre" placeholder="Ej: María"></div>
         <div class="fg"><label>Ingreso mensual ($)</label>
-          <input type="number" id="iIngreso" placeholder="Ej: 800000" min="0"></div>
+          <input type="text" id="iIngreso" placeholder="Ej: 800.000" min="0" inputmode="numeric"></div>
         <button class="bp" onclick="addInt()">Agregar</button>
       </div>
       <div id="emptyInt" class="empty">Agrega integrantes para comenzar</div>
@@ -224,7 +224,7 @@
         <div class="fg"><label>Descripción</label>
           <input type="text" id="gDesc" placeholder="Ej: Arriendo, Luz..."></div>
         <div class="fg"><label>Monto ($)</label>
-          <input type="number" id="gMonto" placeholder="Ej: 450000" min="0"></div>
+          <input type="text" id="gMonto" placeholder="Ej: 450.000" min="0" inputmode="numeric"></div>
         <button class="bs" onclick="addGas()">Agregar</button>
       </div>
       <div id="emptyGas" class="empty">Agrega los gastos comunes del hogar</div>
@@ -272,7 +272,7 @@
         <div class="fg"><label>Descripción</label>
           <input type="text" id="pDesc" placeholder="Ej: Arriendo, Sueldo..."></div>
         <div class="fg"><label>Monto ($)</label>
-          <input type="number" id="pMonto" placeholder="0" min="0"></div>
+          <input type="text" id="pMonto" placeholder="0" min="0" inputmode="numeric"></div>
         <div class="fg"><label>Categoría</label>
           <select id="pCat">
             <option value="Vivienda">🏠 Vivienda</option>
@@ -558,6 +558,69 @@
 
   document.getElementById('pDesc').addEventListener('keypress',e=>{if(e.key==='Enter')addMov();});
   renderP();
+
+  /* ── FORMATEO AUTOMÁTICO DE INPUTS NUMÉRICOS ── */
+  function setupNumInput(id) {
+    const el = document.getElementById(id);
+    el.addEventListener('input', function() {
+      // Guardar posición del cursor
+      const pos = this.selectionStart;
+      // Extraer solo dígitos
+      const raw = this.value.replace(/\D/g, '');
+      if (!raw) { this.value = ''; return; }
+      // Formatear con puntos de miles
+      const formatted = parseInt(raw, 10).toLocaleString('es-CL');
+      // Calcular nueva posición del cursor compensando los puntos
+      const diff = formatted.length - this.value.length;
+      this.value = formatted;
+      // Restaurar cursor
+      try { this.setSelectionRange(pos + diff, pos + diff); } catch(e) {}
+    });
+    // Limpiar formato al enviar (retornar número puro para los cálculos)
+    el._getRaw = function() {
+      return parseFloat(this.value.replace(/\./g, '').replace(',', '.')) || 0;
+    };
+  }
+
+  setupNumInput('iIngreso');
+  setupNumInput('gMonto');
+  setupNumInput('pMonto');
+
+  // Parchear las funciones para que lean el valor sin puntos
+  const _origAddInt = addInt;
+  window.addInt = function() {
+    const el = document.getElementById('iIngreso');
+    const raw = el._getRaw();
+    const temp = el.value;
+    el.value = raw;
+    _origAddInt();
+    // Si se limpió (éxito) no restaurar, si no se limpió restaurar
+    if (el.value === '') return;
+    el.value = temp;
+  };
+
+  const _origAddGas = addGas;
+  window.addGas = function() {
+    const el = document.getElementById('gMonto');
+    const raw = el._getRaw();
+    const temp = el.value;
+    el.value = raw;
+    _origAddGas();
+    if (el.value === '') return;
+    el.value = temp;
+  };
+
+  const _origAddMov = addMov;
+  window.addMov = function() {
+    const el = document.getElementById('pMonto');
+    const raw = el._getRaw();
+    const temp = el.value;
+    el.value = raw;
+    _origAddMov();
+    if (el.value === '') return;
+    el.value = temp;
+  };
+
 </script>
 </body>
 </html>
