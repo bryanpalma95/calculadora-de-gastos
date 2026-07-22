@@ -317,9 +317,17 @@
       <div class="fg"><label>Correo electronico</label>
         <input type="email" id="authEmail" placeholder="tu@email.com"></div>
       <div class="fg"><label>Contrasena</label>
-        <input type="password" id="authPass" placeholder="Minimo 6 caracteres"></div>
+        <div style="position:relative">
+          <input type="password" id="authPass" placeholder="Minimo 6 caracteres" style="padding-right:40px">
+          <button type="button" onclick="togglePassVisibility('authPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:4px;color:var(--tm)">👁️</button>
+        </div>
+      </div>
       <div class="fg" id="authPassConfirmWrap" style="display:none"><label>Confirmar contrasena</label>
-        <input type="password" id="authPassConfirm" placeholder="Repite tu contrasena"></div>
+        <div style="position:relative">
+          <input type="password" id="authPassConfirm" placeholder="Repite tu contrasena" style="padding-right:40px">
+          <button type="button" onclick="togglePassVisibility('authPassConfirm',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:4px;color:var(--tm)">👁️</button>
+        </div>
+      </div>
       <button class="bp" style="width:100%;padding:12px;font-size:1rem;margin-top:6px" id="authBtn" onclick="doAuth()">Iniciar Sesion</button>
       <p style="text-align:center;margin-top:12px">
         <a href="#" onclick="doResetPassword()" style="color:var(--ac);font-size:.82rem;text-decoration:none;font-weight:500">¿Olvidaste tu contrasena?</a>
@@ -620,6 +628,17 @@
     const el = document.getElementById('authOk');
     el.textContent = msg; el.style.display = 'block';
     document.getElementById('authErr').style.display = 'none';
+  }
+
+  function togglePassVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
   }
   async function doAuth() {
     const email = document.getElementById('authEmail').value.trim();
