@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculadora de Negocio | Control Financiero y PYME</title>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg:    linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
@@ -203,10 +207,74 @@
     .toast.error { border-left: 4px solid var(--rd); }
 
     .empty { text-align: center; padding: 24px; color: var(--tm); font-size: 0.88rem; font-style: italic; }
+
+    /* AUTH SCREEN */
+    .auth-screen{display:flex;align-items:center;justify-content:center;min-height:80vh}
+    .auth-card{background:var(--card);border-radius:var(--rad);padding:32px;
+      max-width:380px;width:100%;box-shadow:0 12px 40px var(--sh);border:1px solid var(--bdr)}
+    .auth-card h2{color:var(--t1);font-size:1.4rem;font-weight:800;text-align:center;
+      margin-bottom:6px;border:none;padding:0;display:block}
+    .auth-card p{color:var(--t2);font-size:.85rem;text-align:center;margin-bottom:20px}
+    .auth-card .fg{margin-bottom:14px}
+    .auth-tabs{display:flex;gap:0;margin-bottom:20px;border-radius:8px;overflow:hidden;border:2px solid var(--bdr)}
+    .auth-tab{flex:1;padding:10px;text-align:center;font-size:.85rem;font-weight:600;
+      cursor:pointer;background:var(--sub);color:var(--t2);border:none;transition:all .2s}
+    .auth-tab.active{background:var(--ac);color:#fff}
+    .auth-err{background:rgba(239,68,68,0.1);color:var(--rd);padding:10px 14px;
+      border-radius:8px;font-size:.82rem;margin-bottom:12px;display:none;border:1px solid rgba(239,68,68,0.2)}
+    .auth-ok{background:rgba(16,185,129,0.1);color:var(--gr);padding:10px 14px;
+      border-radius:8px;font-size:.82rem;margin-bottom:12px;display:none;border:1px solid rgba(16,185,129,0.2)}
+    /* Loading */
+    .loading-screen{display:flex;align-items:center;justify-content:center;min-height:80vh;flex-direction:column;gap:16px}
+    .spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;
+      border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-screen p{color:rgba(255,255,255,.8);font-size:.9rem}
   </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- LOADING SCREEN -->
+  <div class="loading-screen" id="loadingScreen">
+    <div class="spinner"></div>
+    <p>Cargando...</p>
+  </div>
+
+  <!-- AUTH SCREEN -->
+  <div class="auth-screen" id="authScreen" style="display:none">
+    <div class="auth-card">
+      <h2>📈 Calculadora de Negocio</h2>
+      <p>Inicia sesion o crea una cuenta para sincronizar tus datos</p>
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuth('login')">Iniciar Sesion</button>
+        <button class="auth-tab" onclick="switchAuth('register')">Registrarse</button>
+      </div>
+      <div class="auth-err" id="authErr"></div>
+      <div class="auth-ok" id="authOk"></div>
+      <div class="fg"><label>Correo electronico</label>
+        <input type="email" id="authEmail" placeholder="tu@email.com"></div>
+      <div class="fg"><label>Contrasena</label>
+        <div style="position:relative">
+          <input type="password" id="authPass" placeholder="Minimo 6 caracteres" style="padding-right:40px">
+          <button type="button" onclick="togglePassVisibility('authPass',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:4px;color:var(--tm)">👁️</button>
+        </div>
+      </div>
+      <div class="fg" id="authPassConfirmWrap" style="display:none"><label>Confirmar contrasena</label>
+        <div style="position:relative">
+          <input type="password" id="authPassConfirm" placeholder="Repite tu contrasena" style="padding-right:40px">
+          <button type="button" onclick="togglePassVisibility('authPassConfirm',this)" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;padding:4px;color:var(--tm)">👁️</button>
+        </div>
+      </div>
+      <button class="bp" style="width:100%;padding:12px;font-size:1rem;margin-top:6px" id="authBtn" onclick="doAuth()">Iniciar Sesion</button>
+      <p style="text-align:center;margin-top:12px">
+        <a href="#" onclick="doResetPassword()" style="color:var(--ac);font-size:.82rem;text-decoration:none;font-weight:500">¿Olvidaste tu contrasena?</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN APP (hidden until authenticated) -->
+  <div id="mainApp" style="display:none">
 
   <!-- HEADER -->
   <div class="hdr">
@@ -233,10 +301,17 @@
         <h3>📌 Navegación</h3>
         <button class="bdel" onclick="toggleMobileNav()">✕</button>
       </div>
+      <div style="padding:12px 0;border-bottom:1px solid var(--bdr);margin-bottom:8px;display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;flex-shrink:0">👤</div>
+        <span id="userEmail" style="font-size:.8rem;color:var(--t2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">user@email.com</span>
+      </div>
       <button class="mobile-tab-btn active" onclick="selectMobileTab('flujo', this)">💼 Flujo de Caja</button>
       <button class="mobile-tab-btn" onclick="selectMobileTab('kpis', this)">📈 KPIs y Salud</button>
       <button class="mobile-tab-btn" onclick="selectMobileTab('socios', this)">🤝 Socios y Ganancias</button>
       <button class="mobile-tab-btn" onclick="selectMobileTab('resumen', this)">📅 Resumen Mensual</button>
+      <div style="margin-top:auto;padding-top:16px;border-top:1px solid var(--bdr)">
+        <button onclick="doLogout()" style="width:100%;padding:10px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--rd),var(--rd2));color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">🚪 Cerrar Sesion</button>
+      </div>
     </div>
   </div>
 
@@ -492,7 +567,8 @@
 
   </div>
 
-</div>
+  </div><!-- end mainApp -->
+</div><!-- end wrap -->
 
 <!-- MODAL REUTILIZABLE -->
 <div class="modal" id="editModal" style="display:none">
@@ -511,7 +587,208 @@
 
 <script>
   /* ══════════════════════════════════════
-     UTILIDADES COMPARTIDAS & PERSISTENCIA
+     FIREBASE INIT
+  ══════════════════════════════════════ */
+  const firebaseConfig = {
+    apiKey: "AIzaSyAm1ogHBKfbT5xEa0GBPGxn3JZ9O1FP7k4",
+    authDomain: "control-de-usuarios-17170.firebaseapp.com",
+    projectId: "control-de-usuarios-17170",
+    storageBucket: "control-de-usuarios-17170.firebasestorage.app",
+    messagingSenderId: "434859524662",
+    appId: "1:434859524662:web:89a34291021a31f9b80e97",
+    measurementId: "G-WJGGCQ4VM0"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let currentUser = null;
+  let userDocRef = null;
+
+  /* ══════════════════════════════════════
+     AUTH LOGIC
+  ══════════════════════════════════════ */
+  let authMode = 'login';
+
+  function switchAuth(mode) {
+    authMode = mode;
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('authPassConfirmWrap').style.display = mode === 'register' ? 'block' : 'none';
+    document.getElementById('authBtn').textContent = mode === 'login' ? 'Iniciar Sesion' : 'Crear Cuenta';
+    document.getElementById('authErr').style.display = 'none';
+    document.getElementById('authOk').style.display = 'none';
+  }
+
+  function showAuthErr(msg) {
+    const el = document.getElementById('authErr');
+    el.textContent = msg; el.style.display = 'block';
+    document.getElementById('authOk').style.display = 'none';
+  }
+
+  function showAuthOk(msg) {
+    const el = document.getElementById('authOk');
+    el.textContent = msg; el.style.display = 'block';
+    document.getElementById('authErr').style.display = 'none';
+  }
+
+  function togglePassVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+
+  async function doAuth() {
+    const email = document.getElementById('authEmail').value.trim();
+    const pass = document.getElementById('authPass').value;
+    if (!email || !pass) { showAuthErr('Completa todos los campos'); return; }
+    if (pass.length < 6) { showAuthErr('La contrasena debe tener al menos 6 caracteres'); return; }
+
+    if (authMode === 'register') {
+      const pass2 = document.getElementById('authPassConfirm').value;
+      if (pass !== pass2) { showAuthErr('Las contrasenas no coinciden'); return; }
+    }
+
+    try {
+      document.getElementById('authBtn').disabled = true;
+      document.getElementById('authBtn').textContent = 'Cargando...';
+
+      if (authMode === 'login') {
+        await auth.signInWithEmailAndPassword(email, pass);
+      } else {
+        await auth.createUserWithEmailAndPassword(email, pass);
+      }
+    } catch (err) {
+      let msg = 'Error desconocido';
+      switch (err.code) {
+        case 'auth/user-not-found': msg = 'No existe una cuenta con este correo'; break;
+        case 'auth/wrong-password': msg = 'Contrasena incorrecta'; break;
+        case 'auth/invalid-credential': msg = 'Credenciales invalidas'; break;
+        case 'auth/email-already-in-use': msg = 'Ya existe una cuenta con este correo'; break;
+        case 'auth/weak-password': msg = 'La contrasena es muy debil (minimo 6 caracteres)'; break;
+        case 'auth/invalid-email': msg = 'El correo no es valido'; break;
+        case 'auth/too-many-requests': msg = 'Demasiados intentos. Espera un momento'; break;
+        default: msg = err.message;
+      }
+      showAuthErr(msg);
+      document.getElementById('authBtn').disabled = false;
+      document.getElementById('authBtn').textContent = authMode === 'login' ? 'Iniciar Sesion' : 'Crear Cuenta';
+    }
+  }
+
+  function doLogout() {
+    if (!confirm('¿Cerrar sesion?')) return;
+    auth.signOut();
+  }
+
+  async function doResetPassword() {
+    const email = document.getElementById('authEmail').value.trim();
+    if (!email) {
+      showAuthErr('Ingresa tu correo electronico para recuperar la contrasena');
+      return;
+    }
+    try {
+      await auth.sendPasswordResetEmail(email);
+      showAuthOk('Se envio un enlace de recuperacion a ' + email + '. Revisa tu bandeja de entrada.');
+    } catch (err) {
+      let msg = 'Error al enviar el correo';
+      switch (err.code) {
+        case 'auth/user-not-found': msg = 'No existe una cuenta con este correo'; break;
+        case 'auth/invalid-email': msg = 'El correo no es valido'; break;
+        case 'auth/too-many-requests': msg = 'Demasiados intentos. Espera un momento'; break;
+        default: msg = err.message;
+      }
+      showAuthErr(msg);
+    }
+  }
+
+  // Auth state observer
+  auth.onAuthStateChanged(async (user) => {
+    document.getElementById('loadingScreen').style.display = 'none';
+    if (user) {
+      currentUser = user;
+      userDocRef = db.collection('users').doc(user.uid).collection('negocio').doc('data');
+      document.getElementById('authScreen').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+      document.getElementById('userEmail').textContent = user.email;
+      await loadDataFromFirestore();
+    } else {
+      currentUser = null;
+      userDocRef = null;
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('mainApp').style.display = 'none';
+      document.getElementById('authBtn').disabled = false;
+      document.getElementById('authBtn').textContent = authMode === 'login' ? 'Iniciar Sesion' : 'Crear Cuenta';
+    }
+  });
+
+  /* ══════════════════════════════════════
+     FIRESTORE SYNC
+  ══════════════════════════════════════ */
+  async function loadDataFromFirestore() {
+    try {
+      const doc = await userDocRef.get();
+      if (doc.exists) {
+        const data = doc.data();
+        movs = data.movimientos || [];
+        socios = data.socios || [];
+        console.log('✅ Datos negocio cargados desde Firestore:', {movs: movs.length, socios: socios.length});
+      } else {
+        movs = []; socios = [];
+        await saveAllToFirestore();
+        console.log('✅ Usuario nuevo (negocio), documento creado');
+      }
+    } catch (e) {
+      console.error('❌ Error cargando datos negocio:', e);
+      movs = []; socios = [];
+    }
+    renderMovimientos();
+  }
+
+  let isSaving = false;
+  let pendingSave = false;
+
+  async function saveAllToFirestore() {
+    if (!userDocRef) return;
+    if (isSaving) { pendingSave = true; return; }
+    isSaving = true;
+    try {
+      await userDocRef.set({
+        movimientos: movs,
+        socios: socios,
+        updated_at: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+      console.log('✅ Datos negocio guardados');
+    } catch (e) {
+      console.error('❌ Error guardando datos negocio:', e);
+    } finally {
+      isSaving = false;
+      if (pendingSave) {
+        pendingSave = false;
+        saveAllToFirestore();
+      }
+    }
+  }
+
+  function scheduleSave() { saveAllToFirestore(); }
+
+  window.addEventListener('beforeunload', () => {
+    if (userDocRef && (movs.length || socios.length)) {
+      navigator.sendBeacon && userDocRef.set({
+        movimientos: movs,
+        socios: socios
+      }, { merge: true });
+    }
+  });
+
+  /* ══════════════════════════════════════
+     UTILIDADES COMPARTIDAS
   ══════════════════════════════════════ */
   const fmt = n => '$' + Math.round(Math.abs(n)).toLocaleString('es-CL');
   const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -641,12 +918,12 @@
     'Servicios Básicos':'#06b6d4', 'Herramientas / Software':'#6366f1', 'Impuestos / Contabilidad':'#ef4444', 'Otro':'#94a3b8'
   };
 
-  let movs = JSON.parse(localStorage.getItem('biz_movs_v1') || '[]');
-  let socios = JSON.parse(localStorage.getItem('biz_socios_v1') || '[]');
+  let movs = [];
+  let socios = [];
   let tipoFiltro = 'todos';
 
-  function saveMovs() { localStorage.setItem('biz_movs_v1', JSON.stringify(movs)); }
-  function saveSocios() { localStorage.setItem('biz_socios_v1', JSON.stringify(socios)); }
+  function saveMovs() { scheduleSave(); }
+  function saveSocios() { scheduleSave(); }
 
   /* Agregar Movimiento */
   function addMovimiento() {
@@ -1060,6 +1337,8 @@
   /* Init */
   setupFmt('mMonto');
   document.getElementById('mMonto').addEventListener('keypress', e => { if (e.key === 'Enter') addMovimiento(); });
+  document.getElementById('authPass').addEventListener('keypress', e => { if (e.key === 'Enter') doAuth(); });
+  document.getElementById('authEmail').addEventListener('keypress', e => { if (e.key === 'Enter') document.getElementById('authPass').focus(); });
   renderMovimientos();
 </script>
 </body>
