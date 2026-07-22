@@ -634,21 +634,29 @@
         gass = data.gastos_hogar || [];
         movs = data.movimientos || [];
         budgetLimit = data.budget_limit || 0;
+        console.log('✅ Datos cargados desde Firestore:', {ints: ints.length, gass: gass.length, movs: movs.length});
       } else {
         // New user — start fresh
         ints = []; gass = []; movs = []; budgetLimit = 0;
         await saveAllToFirestore();
+        console.log('✅ Usuario nuevo, documento creado');
       }
     } catch (e) {
-      console.error('Error loading data:', e);
+      console.error('❌ Error cargando datos:', e);
+      alert('Error al cargar datos desde la nube: ' + e.message + '\n\nVerifica:\n1. Que publicaste las reglas de Firestore\n2. Que no estas abriendo el archivo con file:// (usa un servidor local)');
       // Fallback to empty
       ints = []; gass = []; movs = []; budgetLimit = 0;
     }
     renderInts(); renderGass(); renderP();
   }
 
+  let isSaving = false;
+  let pendingSave = false;
+
   async function saveAllToFirestore() {
     if (!userDocRef) return;
+    if (isSaving) { pendingSave = true; return; }
+    isSaving = true;
     try {
       await userDocRef.set({
         integrantes: ints,
@@ -657,17 +665,35 @@
         budget_limit: budgetLimit,
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
+      console.log('✅ Datos guardados en Firestore');
     } catch (e) {
-      console.error('Error saving data:', e);
+      console.error('❌ Error guardando datos:', e);
+      alert('Error al guardar datos: ' + e.message + '\nRevisa la consola del navegador (F12).');
+    } finally {
+      isSaving = false;
+      if (pendingSave) {
+        pendingSave = false;
+        saveAllToFirestore();
+      }
     }
   }
 
-  // Debounced save to avoid too many writes
-  let saveTimeout = null;
+  // Save immediately on each change (no debounce)
   function scheduleSave() {
-    if (saveTimeout) clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(() => saveAllToFirestore(), 800);
+    saveAllToFirestore();
   }
+
+  // Force save before page unload
+  window.addEventListener('beforeunload', () => {
+    if (userDocRef && (ints.length || gass.length || movs.length)) {
+      navigator.sendBeacon && userDocRef.set({
+        integrantes: ints,
+        gastos_hogar: gass,
+        movimientos: movs,
+        budget_limit: budgetLimit
+      }, { merge: true });
+    }
+  });
 
   /* ══════════════════════════════════════
      UTILIDADES COMPARTIDAS
@@ -1242,6 +1268,10 @@
   // Enter on auth fields
   document.getElementById('authPass').addEventListener('keypress',e=>{if(e.key==='Enter')doAuth();});
   document.getElementById('authEmail').addEventListener('keypress',e=>{if(e.key==='Enter')document.getElementById('authPass').focus();});
+</script>
+</body>
+</html>
+
 </script>
 </body>
 </html>
