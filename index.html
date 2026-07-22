@@ -35,13 +35,14 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);
-      min-height:100vh;padding:20px 16px 60px;transition:background .4s}
-    .wrap{max-width:900px;margin:0 auto}
+      min-height:100vh;padding:20px 16px 60px;transition:background .4s;
+      overflow-x:hidden}
+    .wrap{max-width:900px;margin:0 auto;width:100%}
     /* header */
     .hdr{display:flex;align-items:center;justify-content:space-between;
       margin-bottom:20px;flex-wrap:wrap;gap:10px}
     h1{color:#fff;font-size:clamp(1.2rem,4.5vw,1.9rem);font-weight:800;
-      letter-spacing:-.03em;text-shadow:0 2px 8px rgba(0,0,0,.25);flex:1}
+      letter-spacing:-.03em;text-shadow:0 2px 8px rgba(0,0,0,.25);flex:1;min-width:200px}
     .tt{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
     .tt .lbl{color:rgba(255,255,255,.85);font-size:.8rem;font-weight:600}
     .trk{width:46px;height:26px;background:rgba(255,255,255,.25);border-radius:50px;
@@ -53,11 +54,12 @@
       box-shadow:0 1px 4px rgba(0,0,0,.3)}
     [data-theme="dark"] .knb{transform:translateX(20px)}
     /* tabs */
-    .tabs{display:flex;gap:0;background:rgba(255,255,255,.15);
-      border-radius:12px;padding:4px;margin-bottom:20px;width:fit-content}
-    .tab{padding:9px 22px;border-radius:9px;border:none;background:transparent;
-      color:rgba(255,255,255,.7);font-size:.92rem;font-weight:600;cursor:pointer;
-      transition:all .2s}
+    .tabs{display:flex;gap:4px;background:rgba(255,255,255,.15);
+      border-radius:12px;padding:4px;margin-bottom:20px;width:100%;
+      overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .tab{flex:1;min-width:max-content;padding:9px 16px;border-radius:9px;border:none;background:transparent;
+      color:rgba(255,255,255,.7);font-size:clamp(0.8rem, 3.2vw, 0.92rem);font-weight:600;cursor:pointer;
+      transition:all .2s;text-align:center}
     .tab.active{background:#fff;color:var(--ac);box-shadow:0 2px 8px rgba(0,0,0,.15)}
     /* panel */
     .panel{display:none}.panel.active{display:block}
@@ -72,8 +74,16 @@
     .fr{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;
       margin-bottom:16px;align-items:end}
     .fr3{grid-template-columns:1fr 140px 120px 110px auto}
-    @media(max-width:560px){.fr,.fr3{grid-template-columns:1fr}
-      .fr button,.fr3 button{width:100%}}
+    .fr-resumen{grid-template-columns:1fr 1fr auto}
+    @media(max-width:768px){
+      .fr3{grid-template-columns:1fr 1fr}
+      .fr3 .fg:first-child{grid-column:1 / -1}
+      .fr3 button{grid-column:1 / -1;width:100%}
+    }
+    @media(max-width:540px){
+      .fr,.fr3,.fr-resumen{grid-template-columns:1fr}
+      .fr button,.fr3 button,.fr-resumen button{width:100%}
+    }
     .fg{display:flex;flex-direction:column;gap:5px}
     .fg label{font-size:.75rem;font-weight:700;color:var(--t2);
       text-transform:uppercase;letter-spacing:.06em;transition:color .4s}
@@ -99,7 +109,7 @@
     .bcl{background:linear-gradient(135deg,var(--rd),var(--rd2));color:#fff;
       padding:14px 20px;border-radius:12px;font-size:.9rem}
     /* table */
-    .tw{overflow-x:auto;border-radius:8px;margin-top:4px}
+    .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;margin-top:4px;width:100%}
     table{width:100%;border-collapse:collapse;min-width:260px}
     th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--bdr);
       white-space:nowrap;transition:border-color .4s}
@@ -119,6 +129,7 @@
     .tbox .tv{font-size:1.3rem;font-weight:700;color:var(--ac)}
     /* actions */
     .acts{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 16px}
+    @media(max-width:520px){.acts{flex-direction:column}.acts button{width:100%;text-align:center}}
     /* resultado hogar */
     .ritem{background:var(--sub);border-radius:12px;padding:16px;margin-bottom:12px;
       display:flex;justify-content:space-between;align-items:flex-start;
@@ -134,7 +145,7 @@
     .rs{font-size:.8rem;margin-top:3px;font-weight:600}
     .sp{color:var(--gr)}.sn{color:var(--rd)}
     /* resumen stats */
-    .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    .sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
       gap:10px;margin-top:16px}
     .sc{background:var(--card);border-radius:10px;padding:14px;text-align:center;
       box-shadow:0 2px 8px var(--sh);transition:background .4s}
@@ -160,8 +171,7 @@
       font-size:14px;padding:4px 6px;border-radius:6px;transition:all .15s}
     .bdel:hover{color:var(--rd);background:rgba(248,113,113,.1)}
     /* resumen personal */
-    .pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-    @media(max-width:500px){.pgrid{grid-template-columns:1fr}}
+    .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px}
     .pc{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad);padding:16px 18px}
     .pl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
       color:var(--tm);margin-bottom:6px;transition:color .4s}
@@ -177,7 +187,20 @@
       background:linear-gradient(90deg,var(--gr),var(--ac));transition:width .4s}
     .bfill.peligro{background:linear-gradient(90deg,var(--yw),var(--rd))}
     .mlista{display:flex;flex-direction:column;gap:8px}
-    .col-prop{} @media(max-width:400px){.col-prop{display:none}}
+    .pfilter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+    @media(max-width:520px){
+      .pfilter-bar{justify-content:space-between}
+      .pfilter-bar .tab{flex:1;text-align:center;padding:7px 10px;font-size:.8rem}
+      .pfilter-bar .bcl{width:100%;margin-left:0 !important;text-align:center;margin-top:4px}
+    }
+    .col-prop{} @media(max-width:440px){.col-prop{display:none}}
+    @media(max-width:480px){
+      body{padding:12px 10px 40px}
+      .card{padding:16px 14px}
+      .mitem{gap:8px;padding:10px 12px}
+      .mn{font-size:13px}
+      .mamt{font-size:14px}
+    }
   </style>
 </head>
 <body>
@@ -296,7 +319,7 @@
       </div>
     </div>
 
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center">
+    <div class="pfilter-bar">
       <button class="tab active" style="background:rgba(255,255,255,.2);color:#fff;border-radius:100px"
         onclick="filtrarP('todos',this)">Todos</button>
       <button class="tab" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:100px"
@@ -321,7 +344,7 @@
     <!-- Selector de mes -->
     <div class="card">
       <h2>📅 Resumen Mensual</h2>
-      <div class="fr" style="grid-template-columns:1fr 1fr auto">
+      <div class="fr fr-resumen">
         <div class="fg">
           <label>Mes</label>
           <select id="rMes">
@@ -624,12 +647,12 @@
     document.getElementById('pCatLista').innerHTML = Object.entries(pc)
       .sort((a,b)=>b[1]-a[1])
       .map(([c,tot])=>`
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="font-size:13px;min-width:130px;color:var(--t1)">${EMOJIS[c]||'📦'} ${c}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="font-size:13px;min-width:90px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t1)">${EMOJIS[c]||'📦'} ${c}</div>
           <div style="flex:1;height:6px;background:var(--sub);border-radius:100px;overflow:hidden">
             <div style="height:100%;width:${(tot/mx)*100}%;background:var(--ac);border-radius:100px;transition:width .4s"></div>
           </div>
-          <div style="font-size:12px;color:var(--tm);min-width:80px;text-align:right">${fmt(tot)}</div>
+          <div style="font-size:12px;color:var(--tm);min-width:70px;text-align:right;white-space:nowrap">${fmt(tot)}</div>
         </div>`).join('');
   }
 
@@ -700,12 +723,12 @@
       document.getElementById('rCatBody').innerHTML = Object.entries(pc)
         .sort((a,b)=>b[1]-a[1])
         .map(([c,tot])=>`
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <div style="font-size:13px;min-width:130px;color:var(--t1)">${EMOJIS[c]||'📦'} ${c}</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <div style="font-size:13px;min-width:90px;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t1)">${EMOJIS[c]||'📦'} ${c}</div>
             <div style="flex:1;height:7px;background:var(--sub);border-radius:100px;overflow:hidden">
               <div style="height:100%;width:${(tot/mx)*100}%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:100px;transition:width .4s"></div>
             </div>
-            <div style="font-size:12px;color:var(--tm);min-width:90px;text-align:right">${fmt(tot)} (${((tot/tg)*100).toFixed(0)}%)</div>
+            <div style="font-size:12px;color:var(--tm);min-width:80px;text-align:right;white-space:nowrap">${fmt(tot)} (${((tot/tg)*100).toFixed(0)}%)</div>
           </div>`).join('');
       rCatCard.style.display='block';
     } else {
@@ -738,360 +761,6 @@
   renderInts();
   renderGass();
   renderP();
-</script>
-</body>
-</html>    const nGas = delMes.filter(m=>m.t==='gasto').length;
-    const nIng = delMes.filter(m=>m.t==='ingreso').length;
-    const promedioGasto = nGas>0 ? tg/nGas : 0;
-
-    // Stats
-    rStats.innerHTML = `
-      <div class="sc"><div class="sl">💰 Ingresos</div><div class="sv svg">${fmt(ti)}</div></div>
-      <div class="sc"><div class="sl">💸 Gastos</div><div class="sv svr">${fmt(tg)}</div></div>
-      <div class="sc"><div class="sl">📊 Balance</div><div class="sv ${bal>=0?'svg':'svr'}">${bal<0?'-':''}${fmt(bal)}</div></div>
-      <div class="sc"><div class="sl">% Gasto/Ingreso</div><div class="sv sva">${pct}%</div></div>
-      <div class="sc"><div class="sl">Nº Gastos</div><div class="sv sva">${nGas}</div></div>
-      <div class="sc"><div class="sl">Gasto promedio</div><div class="sv svr">${fmt(promedioGasto)}</div></div>`;
-
-    // Categorías del mes
-    const gas2 = delMes.filter(m=>m.t==='gasto');
-    if (gas2.length){
-      const pc={};
-      gas2.forEach(m=>{ pc[m.c]=(pc[m.c]||0)+m.v; });
-      const mx = Math.max(...Object.values(pc));
-      document.getElementById('rCatBody').innerHTML = Object.entries(pc)
-        .sort((a,b)=>b[1]-a[1])
-        .map(([c,tot])=>`
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-            <div style="font-size:13px;min-width:130px;color:var(--t1)">${EMOJIS[c]||'📦'} ${c}</div>
-            <div style="flex:1;height:7px;background:var(--sub);border-radius:100px;overflow:hidden">
-              <div style="height:100%;width:${(tot/mx)*100}%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:100px;transition:width .4s"></div>
-            </div>
-            <div style="font-size:12px;color:var(--tm);min-width:90px;text-align:right">${fmt(tot)} (${((tot/tg)*100).toFixed(0)}%)</div>
-          </div>`).join('');
-      rCatCard.style.display='block';
-    } else {
-      rCatCard.style.display='none';
-    }
-
-    // Tabla de movimientos del mes
-    document.getElementById('rMovBody').innerHTML = delMes.map(m=>`
-      <tr>
-        <td>${m.f||'—'}</td>
-        <td>${esc(m.d)}</td>
-        <td>${EMOJIS[m.c]||'📦'} ${m.c}</td>
-        <td style="color:${m.t==='gasto'?'var(--rd)':'var(--gr)'}">${m.t==='gasto'?'Gasto':'Ingreso'}</td>
-        <td style="font-weight:700;color:${m.t==='gasto'?'var(--rd)':'var(--gr)'}">${m.t==='gasto'?'−':'+'}${fmt(m.v)}</td>
-      </tr>`).join('');
-    rMovCard.style.display='block';
-  }
-
-  /* ══════════════════════════════════════
-     FORMATEO NUMÉRICO — INIT
-  ══════════════════════════════════════ */
-  setupFmt('iIngreso');
-  setupFmt('gMonto');
-  setupFmt('pMonto');
-
-  document.getElementById('iIngreso').addEventListener('keypress',e=>{if(e.key==='Enter')addInt();});
-  document.getElementById('gMonto').addEventListener('keypress',e=>{if(e.key==='Enter')addGas();});
-  document.getElementById('pDesc').addEventListener('keypress',e=>{if(e.key==='Enter')addMov();});
-
-  renderInts();
-  renderGass();
-  renderP();
-</script>
-</body>
-</html>
-
-  /* ── TABS ── */
-  function switchTab(name,btn){
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('active'));
-    document.getElementById('panel-'+name).classList.add('active');
-    btn.classList.add('active');
-  }
-
-  /* ════════ HOGAR ════════ */
-  const KI='hogar_int_v3', KG='hogar_gas_v3';
-  let ints=JSON.parse(localStorage.getItem(KI)||'[]');
-  let gass=JSON.parse(localStorage.getItem(KG)||'[]');
-  const fmt=n=>'$'+Math.round(Math.abs(n)).toLocaleString('es-CL');
-  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-
-  function saveH(){
-    localStorage.setItem(KI,JSON.stringify(ints));
-    localStorage.setItem(KG,JSON.stringify(gass));
-  }
-
-  function addInt(){
-    const n=document.getElementById('iNombre').value.trim();
-    const v=parseFloat(document.getElementById('iIngreso').value);
-    if(!n){alert('Ingresa el nombre');return;}
-    if(!v||v<=0){alert('Ingresa un ingreso válido');return;}
-    ints.push({id:Date.now(),n,v});
-    document.getElementById('iNombre').value='';
-    document.getElementById('iIngreso').value='';
-    saveH();renderInts();hideRes();
-    document.getElementById('iNombre').focus();
-  }
-
-  function delInt(id){ints=ints.filter(i=>i.id!==id);saveH();renderInts();hideRes();}
-
-  function renderInts(){
-    const tot=ints.reduce((s,i)=>s+i.v,0);
-    const e=document.getElementById('emptyInt');
-    const w=document.getElementById('wrapInt');
-    const b=document.getElementById('bodyInt');
-    if(!ints.length){e.style.display='block';w.style.display='none';return;}
-    e.style.display='none';w.style.display='block';
-    b.innerHTML=ints.map(i=>{
-      const p=((i.v/tot)*100).toFixed(1);
-      return `<tr><td>${esc(i.n)}</td><td>${fmt(i.v)}</td>
-        <td class="col-prop">${p}%</td>
-        <td><button class="bd" onclick="delInt(${i.id})">✕ Quitar</button></td></tr>`;
-    }).join('');
-  }
-
-  function addGas(){
-    const d=document.getElementById('gDesc').value.trim();
-    const v=parseFloat(document.getElementById('gMonto').value);
-    if(!d){alert('Ingresa la descripción');return;}
-    if(!v||v<=0){alert('Ingresa un monto válido');return;}
-    gass.push({id:Date.now(),d,v});
-    document.getElementById('gDesc').value='';
-    document.getElementById('gMonto').value='';
-    saveH();renderGass();hideRes();
-    document.getElementById('gDesc').focus();
-  }
-
-  function delGas(id){gass=gass.filter(g=>g.id!==id);saveH();renderGass();hideRes();}
-
-  function renderGass(){
-    const e=document.getElementById('emptyGas');
-    const w=document.getElementById('wrapGas');
-    const b=document.getElementById('bodyGas');
-    const tb=document.getElementById('tboxGas');
-    if(!gass.length){e.style.display='block';w.style.display='none';tb.style.display='none';return;}
-    e.style.display='none';w.style.display='block';tb.style.display='flex';
-    const tot=gass.reduce((s,g)=>s+g.v,0);
-    document.getElementById('tvGas').textContent=fmt(tot);
-    b.innerHTML=gass.map(g=>`
-      <tr><td>${esc(g.d)}</td><td>${fmt(g.v)}</td>
-      <td><button class="bd" onclick="delGas(${g.id})">✕ Quitar</button></td></tr>
-    `).join('');
-  }
-
-  function limpiarHogar(){
-    if(!ints.length&&!gass.length)return;
-    if(!confirm('¿Borrar todos los datos del hogar?'))return;
-    ints=[];gass=[];saveH();renderInts();renderGass();hideRes();
-  }
-
-  function hideRes(){document.getElementById('resCard').style.display='none';}
-
-  function calcular(){
-    if(!ints.length){alert('Agrega al menos un integrante');return;}
-    if(!gass.length){alert('Agrega al menos un gasto');return;}
-    const tg=gass.reduce((s,g)=>s+g.v,0);
-    const ti=ints.reduce((s,i)=>s+i.v,0);
-    const body=document.getElementById('resBody');
-    body.innerHTML='';
-    let ts=0;
-    ints.forEach(i=>{
-      const p=i.v/ti, a=tg*p, sob=i.v-a, pct=(p*100).toFixed(1);
-      ts+=sob;
-      const div=document.createElement('div');
-      div.className='ritem';
-      div.innerHTML=`
-        <div class="ri">
-          <div class="rn">${esc(i.n)}</div>
-          <div class="rd2">Ingreso: ${fmt(i.v)} · ${pct}% del hogar</div>
-          <div class="pb"><div class="pf" style="width:${pct}%"></div></div>
-        </div>
-        <div class="rm">
-          <div class="ra">${fmt(a)}</div>
-          <div class="rs ${sob>=0?'sp':'sn'}">${sob>=0?'Le sobran':'Le falta'} ${fmt(sob)}</div>
-        </div>`;
-      body.appendChild(div);
-    });
-    const sg=document.createElement('div');
-    sg.className='sgrid';
-    sg.innerHTML=`
-      <div class="sc"><div class="sl">Total gastos</div><div class="sv svr">${fmt(tg)}</div></div>
-      <div class="sc"><div class="sl">Ingresos totales</div><div class="sv svg">${fmt(ti)}</div></div>
-      <div class="sc"><div class="sl">Gastos/Ingresos</div><div class="sv sva">${((tg/ti)*100).toFixed(1)}%</div></div>
-      <div class="sc"><div class="sl">Sobrante total</div><div class="sv ${ts>=0?'svg':'svr'}">${fmt(ts)}</div></div>`;
-    body.appendChild(sg);
-    const card=document.getElementById('resCard');
-    card.style.display='block';
-    card.scrollIntoView({behavior:'smooth',block:'start'});
-  }
-
-  document.getElementById('iIngreso').addEventListener('keypress',e=>{if(e.key==='Enter')addInt();});
-  document.getElementById('gMonto').addEventListener('keypress',e=>{if(e.key==='Enter')addGas();});
-  renderInts();renderGass();
-</script>
-<script>
-  /* ════════ PERSONAL ════════ */
-  const EMOJIS={'Vivienda':'🏠','Alimentación':'🛒','Transporte':'🚗','Salud':'🏥',
-    'Educación':'📚','Entretenimiento':'🎮','Ropa':'👕','Servicios':'💡','Sueldo':'💼','Otro':'📦'};
-  let movs=JSON.parse(localStorage.getItem('movs_v3')||'[]');
-  let filtP='todos';
-
-  function saveP(){localStorage.setItem('movs_v3',JSON.stringify(movs));}
-
-  function addMov(){
-    const d=document.getElementById('pDesc').value.trim();
-    const v=parseFloat(document.getElementById('pMonto').value);
-    const c=document.getElementById('pCat').value;
-    const t=document.getElementById('pTipo').value;
-    if(!d){alert('Ingresa una descripción');return;}
-    if(!v||v<=0){alert('Ingresa un monto válido');return;}
-    movs.unshift({id:Date.now(),d,v,c,t,
-      f:new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'short'})});
-    document.getElementById('pDesc').value='';
-    document.getElementById('pMonto').value='';
-    saveP();renderP();
-    document.getElementById('pDesc').focus();
-  }
-
-  function delMov(id){movs=movs.filter(m=>m.id!==id);saveP();renderP();}
-
-  function filtrarP(t,btn){
-    filtP=t;
-    document.querySelectorAll('#panel-personal .tab').forEach(b=>{
-      b.style.background='rgba(255,255,255,.12)';b.style.color='rgba(255,255,255,.7)';
-    });
-    btn.style.background='rgba(255,255,255,.25)';btn.style.color='#fff';
-    renderP();
-  }
-
-  function limpiarPersonal(){
-    if(!movs.length)return;
-    if(!confirm('¿Eliminar todos los movimientos?'))return;
-    movs=[];saveP();renderP();
-  }
-
-  function renderP(){
-    const ti=movs.filter(m=>m.t==='ingreso').reduce((s,m)=>s+m.v,0);
-    const tg=movs.filter(m=>m.t==='gasto').reduce((s,m)=>s+m.v,0);
-    const bal=ti-tg;
-    const pct=ti>0?Math.min((tg/ti)*100,100):0;
-
-    document.getElementById('pIngresos').textContent=fmt(ti);
-    document.getElementById('pGastos').textContent=fmt(tg);
-    const bel=document.getElementById('pBalance');
-    bel.textContent=(bal<0?'-':'')+fmt(bal);
-    bel.className='pv pvb'+(bal<0?' neg':'');
-    document.getElementById('pPct').textContent=Math.round(pct)+'%';
-    const bf=document.getElementById('pBarra');
-    bf.style.width=pct+'%';
-    bf.className='bfill'+(pct>80?' peligro':'');
-
-    const lista=document.getElementById('pLista');
-    const fil=filtP==='todos'?movs:movs.filter(m=>m.t===filtP);
-    if(!fil.length){
-      lista.innerHTML=`<div class="mitem" style="justify-content:center;background:var(--card)">
-        <span style="color:var(--tm);font-size:.9rem;padding:16px">No hay movimientos aquí</span></div>`;
-    } else {
-      lista.innerHTML=fil.map(m=>`
-        <div class="mitem">
-          <div class="micon ${m.t==='gasto'?'ig':'ii'}">${EMOJIS[m.c]||'📦'}</div>
-          <div class="minfo">
-            <div class="mn">${esc(m.d)}</div>
-            <div class="mm2">${m.c} · ${m.f}</div>
-          </div>
-          <div class="mamt ${m.t==='gasto'?'mg':'mi2'}">${m.t==='gasto'?'−':'+'}${fmt(m.v)}</div>
-          <button class="bdel" onclick="delMov(${m.id})">✕</button>
-        </div>`).join('');
-    }
-
-    const cw=document.getElementById('pCatWrap');
-    const gas2=movs.filter(m=>m.t==='gasto');
-    if(!gas2.length){cw.style.display='none';}
-    else{
-      cw.style.display='block';
-      const pc={};gas2.forEach(m=>{pc[m.c]=(pc[m.c]||0)+m.v;});
-      const mx=Math.max(...Object.values(pc));
-      document.getElementById('pCatLista').innerHTML=Object.entries(pc)
-        .sort((a,b)=>b[1]-a[1])
-        .map(([c,tot])=>`
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-            <div style="font-size:13px;min-width:130px;color:var(--t1)">${EMOJIS[c]||'📦'} ${c}</div>
-            <div style="flex:1;height:6px;background:var(--sub);border-radius:100px;overflow:hidden">
-              <div style="height:100%;width:${(tot/mx)*100}%;background:var(--ac);border-radius:100px;transition:width .4s"></div>
-            </div>
-            <div style="font-size:12px;color:var(--tm);min-width:80px;text-align:right">${fmt(tot)}</div>
-          </div>`).join('');
-    }
-  }
-
-  document.getElementById('pDesc').addEventListener('keypress',e=>{if(e.key==='Enter')addMov();});
-  renderP();
-
-  /* ── FORMATEO AUTOMÁTICO DE INPUTS NUMÉRICOS ── */
-  function setupNumInput(id) {
-    const el = document.getElementById(id);
-    el.addEventListener('input', function() {
-      // Guardar posición del cursor
-      const pos = this.selectionStart;
-      // Extraer solo dígitos
-      const raw = this.value.replace(/\D/g, '');
-      if (!raw) { this.value = ''; return; }
-      // Formatear con puntos de miles
-      const formatted = parseInt(raw, 10).toLocaleString('es-CL');
-      // Calcular nueva posición del cursor compensando los puntos
-      const diff = formatted.length - this.value.length;
-      this.value = formatted;
-      // Restaurar cursor
-      try { this.setSelectionRange(pos + diff, pos + diff); } catch(e) {}
-    });
-    // Limpiar formato al enviar (retornar número puro para los cálculos)
-    el._getRaw = function() {
-      return parseFloat(this.value.replace(/\./g, '').replace(',', '.')) || 0;
-    };
-  }
-
-  setupNumInput('iIngreso');
-  setupNumInput('gMonto');
-  setupNumInput('pMonto');
-
-  // Parchear las funciones para que lean el valor sin puntos
-  const _origAddInt = addInt;
-  window.addInt = function() {
-    const el = document.getElementById('iIngreso');
-    const raw = el._getRaw();
-    const temp = el.value;
-    el.value = raw;
-    _origAddInt();
-    // Si se limpió (éxito) no restaurar, si no se limpió restaurar
-    if (el.value === '') return;
-    el.value = temp;
-  };
-
-  const _origAddGas = addGas;
-  window.addGas = function() {
-    const el = document.getElementById('gMonto');
-    const raw = el._getRaw();
-    const temp = el.value;
-    el.value = raw;
-    _origAddGas();
-    if (el.value === '') return;
-    el.value = temp;
-  };
-
-  const _origAddMov = addMov;
-  window.addMov = function() {
-    const el = document.getElementById('pMonto');
-    const raw = el._getRaw();
-    const temp = el.value;
-    el.value = raw;
-    _origAddMov();
-    if (el.value === '') return;
-    el.value = temp;
-  };
-
 </script>
 </body>
 </html>
