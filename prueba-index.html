@@ -321,6 +321,9 @@
       <div class="fg" id="authPassConfirmWrap" style="display:none"><label>Confirmar contrasena</label>
         <input type="password" id="authPassConfirm" placeholder="Repite tu contrasena"></div>
       <button class="bp" style="width:100%;padding:12px;font-size:1rem;margin-top:6px" id="authBtn" onclick="doAuth()">Iniciar Sesion</button>
+      <p style="text-align:center;margin-top:12px">
+        <a href="#" onclick="doResetPassword()" style="color:var(--ac);font-size:.82rem;text-decoration:none;font-weight:500">¿Olvidaste tu contrasena?</a>
+      </p>
     </div>
   </div>
 
@@ -659,6 +662,27 @@
   function doLogout() {
     if (!confirm('¿Cerrar sesion?')) return;
     auth.signOut();
+  }
+
+  async function doResetPassword() {
+    const email = document.getElementById('authEmail').value.trim();
+    if (!email) {
+      showAuthErr('Ingresa tu correo electronico para recuperar la contrasena');
+      return;
+    }
+    try {
+      await auth.sendPasswordResetEmail(email);
+      showAuthOk('Se envio un enlace de recuperacion a ' + email + '. Revisa tu bandeja de entrada.');
+    } catch (err) {
+      let msg = 'Error al enviar el correo';
+      switch (err.code) {
+        case 'auth/user-not-found': msg = 'No existe una cuenta con este correo'; break;
+        case 'auth/invalid-email': msg = 'El correo no es valido'; break;
+        case 'auth/too-many-requests': msg = 'Demasiados intentos. Espera un momento'; break;
+        default: msg = err.message;
+      }
+      showAuthErr(msg);
+    }
   }
 
   // Auth state observer
