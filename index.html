@@ -181,8 +181,6 @@
     .pv{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
     .pvi{color:var(--gr)}.pvg{color:var(--rd)}.pvb{color:var(--ac)}
     .pvb.neg{color:var(--rd)}
-    .bwrap{background:var(--card);border:1px solid var(--bdr);border-radius:var(--rad);
-      padding:14px 18px;margin-bottom:20px}
     .blbl{display:flex;justify-content:space-between;font-size:12px;
       color:var(--tm);margin-bottom:8px}
     .bbg{height:8px;background:var(--sub);border-radius:100px;overflow:hidden}
@@ -366,6 +364,9 @@
       <button class="sidebar-item" onclick="switchTab('personal',this)">
         <span class="si-icon">👤</span> Personal
       </button>
+      <button class="sidebar-item" onclick="switchTab('metas',this)">
+        <span class="si-icon">🎯</span> Metas
+      </button>
       <button class="sidebar-item" onclick="switchTab('resumen',this)">
         <span class="si-icon">📅</span> Resumen Mensual
       </button>
@@ -403,27 +404,21 @@
 
     <div class="card">
       <h2>💸 Gastos del Hogar</h2>
-      <div class="fr">
-        <div class="fg"><label>Descripcion</label>
-          <input type="text" id="gDesc" placeholder="Ej: Arriendo, Luz..."></div>
-        <div class="fg"><label>Monto ($)</label>
-          <input type="text" id="gMonto" placeholder="Ej: 450.000" min="0" inputmode="numeric"></div>
-        <button class="bs" onclick="addGas()">Agregar</button>
-      </div>
-      <div id="emptyGas" class="empty">Agrega los gastos comunes del hogar</div>
+      <p style="font-size:.8rem;color:var(--t2);margin-bottom:12px">Se calculan automaticamente desde tus gastos fijos/recurrentes registrados en Personal (Vivienda, Servicios, Alimentacion, Transporte, Educacion, Salud)</p>
+      <div id="emptyGasAuto" class="empty">No hay gastos fijos registrados este mes. Ve a Personal y agrega gastos marcados como "Recurrente".</div>
       <div class="tw" id="wrapGas" style="display:none">
-        <table><thead><tr><th>Descripcion</th><th>Monto</th><th></th></tr></thead>
+        <table><thead><tr><th>Descripcion</th><th>Categoria</th><th>Monto</th></tr></thead>
         <tbody id="bodyGas"></tbody></table>
       </div>
       <div class="tbox" id="tboxGas" style="display:none">
-        <span class="tl">Total Gastos:</span>
+        <span class="tl">Total Gastos Hogar:</span>
         <span class="tv" id="tvGas">$0</span>
       </div>
     </div>
 
     <div class="acts">
       <button class="bc" onclick="calcular()">📊 Calcular Distribucion</button>
-      <button class="bcl" onclick="limpiarHogar()">🗑️ Limpiar todo</button>
+      <button class="bcl" onclick="limpiarHogar()">🗑️ Limpiar Integrantes</button>
     </div>
 
     <div class="card" id="resCard" style="display:none">
@@ -442,16 +437,71 @@
         <div class="pv pvb" id="pBalance">$0</div></div>
     </div>
 
-    <div class="bwrap">
-      <div class="blbl"><span>Gastos vs Ingresos</span><span id="pPct">0%</span></div>
-      <div class="bbg"><div class="bfill" id="pBarra" style="width:0%"></div></div>
+    <!-- FORMULARIO AGREGAR MOVIMIENTO -->
+    <div class="card">
+      <h2>➕ Agregar movimiento</h2>
+      <div class="fr fr3">
+        <div class="fg"><label>Descripcion</label>
+          <input type="text" id="pDesc" placeholder="Ej: Arriendo, Sueldo..."></div>
+        <div class="fg"><label>Monto ($)</label>
+          <input type="text" id="pMonto" placeholder="0" min="0" inputmode="numeric"></div>
+        <div class="fg"><label>Categoria</label>
+          <select id="pCat">
+            <option value="Vivienda">🏠 Vivienda</option>
+            <option value="Alimentacion">🛒 Alimentacion</option>
+            <option value="Transporte">🚗 Transporte</option>
+            <option value="Salud">🏥 Salud</option>
+            <option value="Educacion">📚 Educacion</option>
+            <option value="Entretenimiento">🎮 Entretenimiento</option>
+            <option value="Ropa">👕 Ropa</option>
+            <option value="Servicios">💡 Servicios</option>
+            <option value="Sueldo">💼 Sueldo</option>
+            <option value="Personal">☕ Personal</option>
+            <option value="Otro">📦 Otro</option>
+          </select></div>
+        <div class="fg"><label>Tipo</label>
+          <select id="pTipo">
+            <option value="gasto">🔴 Gasto</option>
+            <option value="ingreso">🟢 Ingreso</option>
+          </select></div>
+        <button class="bp" onclick="addMov()">Agregar</button>
+      </div>
+      <div style="margin-top:8px">
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;cursor:pointer;color:var(--t2);user-select:none">
+          <input type="checkbox" id="pRecurrente" style="width:auto"> 🔄 Marcar como Gasto Fijo / Recurrente mensual
+        </label>
+      </div>
     </div>
 
-    <!-- METAS FINANCIERAS -->
-    <div class="card" id="metasCard" style="display:none">
+    <!-- FILTROS Y LISTA -->
+    <div class="pfilter-bar">
+      <button class="tab active" style="background:rgba(255,255,255,.2);color:#fff;border-radius:100px"
+        onclick="filtrarP('todos',this)">Todos</button>
+      <button class="tab" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:100px"
+        onclick="filtrarP('gasto',this)">Solo gastos</button>
+      <button class="tab" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:100px"
+        onclick="filtrarP('ingreso',this)">Solo ingresos</button>
+      <button class="bcl" style="margin-left:auto;padding:6px 14px;font-size:.82rem"
+        onclick="limpiarPersonal()">🗑 Limpiar</button>
+    </div>
+
+    <div class="mlista" id="pLista"></div>
+
+    <!-- GRAFICO POR CATEGORIA -->
+    <div id="pCatWrap" style="display:none;margin-top:16px" class="card">
+      <h2>📊 Gastos por categoria</h2>
+      <div id="pDonutChart"></div>
+      <div id="pCatLista" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- PANEL METAS -->
+  <div class="panel" id="panel-metas">
+    <div class="card">
       <h2>🎯 Metas Financieras</h2>
       <p style="font-size:.8rem;color:var(--t2);margin-bottom:14px">Basado en tus ingresos mensuales de <strong id="metaSueldo">$0</strong></p>
-      <div style="display:flex;flex-direction:column;gap:12px">
+      <div id="metasNoData" class="empty" style="display:none">Registra ingresos en la pestaña Personal para ver tus metas</div>
+      <div id="metasBody" style="display:flex;flex-direction:column;gap:12px">
 
         <!-- AHORRO MENSUAL -->
         <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid var(--gr)">
@@ -470,7 +520,7 @@
           <div class="bbg"><div class="bfill" id="metaAhorroBarra" style="width:0%"></div></div>
         </div>
 
-        <!-- GUSTOS Y SALIDAS -->
+        <!-- GUSTOS Y SALIDAS (automatico) -->
         <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid #ec4899">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
             <span style="font-size:20px">🎉</span>
@@ -478,8 +528,9 @@
               <div style="font-size:.72rem;font-weight:700;color:var(--tm);text-transform:uppercase">Gustos y Salidas</div>
               <div style="font-size:.85rem;color:var(--t2)">Maximo: <strong id="metaGustosTarget">$0</strong> (20% del sueldo)</div>
             </div>
-            <button class="bs" style="padding:5px 10px;font-size:.75rem;background:linear-gradient(135deg,#ec4899,#db2777)" onclick="addToMeta('gustos')">+ Asignar</button>
+            <span style="font-size:.65rem;background:rgba(236,72,153,0.12);color:#ec4899;padding:3px 8px;border-radius:4px;font-weight:700">AUTO</span>
           </div>
+          <div style="font-size:.72rem;color:var(--tm);margin-bottom:6px">Se calcula desde: Entretenimiento, Ropa</div>
           <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--tm);margin-bottom:4px">
             <span>Gastado este mes: <strong id="metaGustosActual" style="color:#ec4899">$0</strong></span>
             <span id="metaGustosPct">0%</span>
@@ -487,7 +538,7 @@
           <div class="bbg"><div class="bfill" id="metaGustosBarra" style="width:0%"></div></div>
         </div>
 
-        <!-- GASTOS FIJOS -->
+        <!-- GASTOS FIJOS (automatico) -->
         <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid var(--rd)">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
             <span style="font-size:20px">🏠</span>
@@ -495,7 +546,9 @@
               <div style="font-size:.72rem;font-weight:700;color:var(--tm);text-transform:uppercase">Gastos Fijos</div>
               <div style="font-size:.85rem;color:var(--t2)">Tope: <strong id="metaFijosTarget">$0</strong> (70% del sueldo)</div>
             </div>
+            <span style="font-size:.65rem;background:rgba(235,51,73,0.12);color:var(--rd);padding:3px 8px;border-radius:4px;font-weight:700">AUTO</span>
           </div>
+          <div style="font-size:.72rem;color:var(--tm);margin-bottom:6px">Se calcula desde: Vivienda, Alimentacion, Transporte, Servicios, Educacion, Salud (marcados como fijos)</div>
           <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--tm);margin-bottom:4px">
             <span>Gastado este mes: <strong id="metaFijosActual" style="color:var(--rd)">$0</strong></span>
             <span id="metaFijosPct">0%</span>
@@ -538,72 +591,6 @@
         </div>
 
       </div>
-    </div>
-
-    <!-- PRESUPUESTO MENSUAL -->
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
-        <h2>🎯 Presupuesto Mensual</h2>
-        <button class="bs" style="padding:6px 12px;font-size:0.8rem" onclick="promptBudget()">⚙️ Definir Limite</button>
-      </div>
-      <div class="blbl" style="margin-top:10px">
-        <span>Gastado: <strong id="bSpent">$0</strong> de <strong id="bLimit">Sin limite</strong></span>
-        <span id="bRest">Disponible: —</span>
-      </div>
-      <div class="bbg"><div class="bfill" id="bBarra" style="width:0%"></div></div>
-      <div id="bAlert" style="display:none" class="b-alert"></div>
-    </div>
-
-    <div class="card">
-      <h2>➕ Agregar movimiento</h2>
-      <div class="fr fr3">
-        <div class="fg"><label>Descripcion</label>
-          <input type="text" id="pDesc" placeholder="Ej: Arriendo, Sueldo..."></div>
-        <div class="fg"><label>Monto ($)</label>
-          <input type="text" id="pMonto" placeholder="0" min="0" inputmode="numeric"></div>
-        <div class="fg"><label>Categoria</label>
-          <select id="pCat">
-            <option value="Vivienda">🏠 Vivienda</option>
-            <option value="Alimentacion">🛒 Alimentacion</option>
-            <option value="Transporte">🚗 Transporte</option>
-            <option value="Salud">🏥 Salud</option>
-            <option value="Educacion">📚 Educacion</option>
-            <option value="Entretenimiento">🎮 Entretenimiento</option>
-            <option value="Ropa">👕 Ropa</option>
-            <option value="Servicios">💡 Servicios</option>
-            <option value="Sueldo">💼 Sueldo</option>
-            <option value="Otro">📦 Otro</option>
-          </select></div>
-        <div class="fg"><label>Tipo</label>
-          <select id="pTipo">
-            <option value="gasto">🔴 Gasto</option>
-            <option value="ingreso">🟢 Ingreso</option>
-          </select></div>
-        <button class="bp" onclick="addMov()">Agregar</button>
-      </div>
-      <div style="margin-top:8px">
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;cursor:pointer;color:var(--t2);user-select:none">
-          <input type="checkbox" id="pRecurrente" style="width:auto"> 🔄 Marcar como Gasto Fijo / Recurrente mensual
-        </label>
-      </div>
-    </div>
-    <div class="pfilter-bar">
-      <button class="tab active" style="background:rgba(255,255,255,.2);color:#fff;border-radius:100px"
-        onclick="filtrarP('todos',this)">Todos</button>
-      <button class="tab" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:100px"
-        onclick="filtrarP('gasto',this)">Solo gastos</button>
-      <button class="tab" style="background:rgba(255,255,255,.12);color:rgba(255,255,255,.7);border-radius:100px"
-        onclick="filtrarP('ingreso',this)">Solo ingresos</button>
-      <button class="bcl" style="margin-left:auto;padding:6px 14px;font-size:.82rem"
-        onclick="limpiarPersonal()">🗑 Limpiar</button>
-    </div>
-
-    <div class="mlista" id="pLista"></div>
-
-    <div id="pCatWrap" style="display:none;margin-top:16px" class="card">
-      <h2>📊 Gastos por categoria</h2>
-      <div id="pDonutChart"></div>
-      <div id="pCatLista" style="margin-top:12px"></div>
     </div>
   </div>
 
@@ -825,14 +812,13 @@
       if (doc.exists) {
         const data = doc.data();
         ints = data.integrantes || [];
-        gass = data.gastos_hogar || [];
         movs = data.movimientos || [];
         budgetLimit = data.budget_limit || 0;
         metasData = data.metas || { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
-        console.log('✅ Datos cargados desde Firestore:', {ints: ints.length, gass: gass.length, movs: movs.length});
+        console.log('✅ Datos cargados desde Firestore:', {ints: ints.length, movs: movs.length});
       } else {
         // New user — start fresh
-        ints = []; gass = []; movs = []; budgetLimit = 0;
+        ints = []; movs = []; budgetLimit = 0;
         metasData = { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
         await saveAllToFirestore();
         console.log('✅ Usuario nuevo, documento creado');
@@ -841,10 +827,11 @@
       console.error('❌ Error cargando datos:', e);
       alert('Error al cargar datos desde la nube: ' + e.message + '\n\nVerifica:\n1. Que publicaste las reglas de Firestore\n2. Que no estas abriendo el archivo con file:// (usa un servidor local)');
       // Fallback to empty
-      ints = []; gass = []; movs = []; budgetLimit = 0;
+      ints = []; movs = []; budgetLimit = 0;
       metasData = { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
     }
     renderInts(); renderGass(); renderP();
+    restoreTab();
   }
 
   let isSaving = false;
@@ -857,7 +844,6 @@
     try {
       await userDocRef.set({
         integrantes: ints,
-        gastos_hogar: gass,
         movimientos: movs,
         budget_limit: budgetLimit,
         metas: metasData,
@@ -886,7 +872,6 @@
     if (userDocRef && (ints.length || gass.length || movs.length)) {
       navigator.sendBeacon && userDocRef.set({
         integrantes: ints,
-        gastos_hogar: gass,
         movimientos: movs,
         budget_limit: budgetLimit
       }, { merge: true });
@@ -923,12 +908,21 @@
      COLORES Y EMOJIS POR CATEGORIA
   ══════════════════════════════════════ */
   const EMOJIS = {'Vivienda':'🏠','Alimentacion':'🛒','Transporte':'🚗','Salud':'🏥',
-    'Educacion':'📚','Entretenimiento':'🎮','Ropa':'👕','Servicios':'💡','Sueldo':'💼','Otro':'📦'};
+    'Educacion':'📚','Entretenimiento':'🎮','Ropa':'👕','Servicios':'💡','Sueldo':'💼','Personal':'☕','Otro':'📦'};
   const CAT_COLORS = {
     'Vivienda':'#7986cb','Alimentacion':'#4db6ac','Transporte':'#ffb74d','Salud':'#ef5350',
     'Educacion':'#ba68c8','Entretenimiento':'#4fc3f7','Ropa':'#a1887f','Servicios':'#81c784',
-    'Sueldo':'#38ef7d','Otro':'#90a4ae'
+    'Sueldo':'#38ef7d','Personal':'#78909c','Otro':'#90a4ae'
   };
+
+  // Categories for auto-calculation
+  const GUSTOS_CATS = ['Entretenimiento', 'Ropa'];
+  const FIJOS_CATS = ['Vivienda', 'Alimentacion', 'Transporte', 'Servicios', 'Educacion', 'Salud'];
+
+  function getCurrentMonthYear() {
+    const now = new Date();
+    return { month: now.getMonth(), year: now.getFullYear() };
+  }
 
   /* ══════════════════════════════════════
      GRAFICO INTERACTIVO SVG DONUT
@@ -987,23 +981,6 @@
       return true;
     });
     setupFmt('mIngreso');
-  }
-
-  function editGas(id) {
-    const item = gass.find(g => g.id === id);
-    if (!item) return;
-    openModal('✏️ Editar Gasto del Hogar', `
-      <div class="fg"><label>Descripcion</label><input type="text" id="mDesc" value="${esc(item.d)}"></div>
-      <div class="fg"><label>Monto ($)</label><input type="text" id="mMonto" value="${item.v.toLocaleString('es-CL')}" inputmode="numeric"></div>
-    `, function() {
-      const d = document.getElementById('mDesc').value.trim();
-      const v = getRaw('mMonto');
-      if (!d || v <= 0) { alert('Ingresa datos validos'); return false; }
-      item.d = d; item.v = v;
-      scheduleSave(); renderGass(); hideRes();
-      return true;
-    });
-    setupFmt('mMonto');
   }
 
   function editMov(id) {
@@ -1073,15 +1050,46 @@
     document.querySelectorAll('.sidebar-nav .sidebar-item').forEach(b => b.classList.remove('active'));
     document.getElementById('panel-'+name).classList.add('active');
     if (btn) btn.classList.add('active');
+    if (name === 'hogar') renderGass();
     if (name === 'resumen') initResumen();
+    if (name === 'metas') renderMetasPanel();
+    localStorage.setItem('active_tab', name);
     closeSidebar();
+  }
+
+  // Restore active tab on load
+  function restoreTab() {
+    const saved = localStorage.getItem('active_tab');
+    if (saved && document.getElementById('panel-' + saved)) {
+      const btns = document.querySelectorAll('.sidebar-nav .sidebar-item');
+      const tabs = ['hogar', 'personal', 'metas', 'resumen'];
+      const idx = tabs.indexOf(saved);
+      if (idx >= 0 && btns[idx]) {
+        switchTab(saved, btns[idx]);
+      }
+    }
+  }
+
+  function renderMetasPanel() {
+    const ti = movs.filter(m => m.t === 'ingreso').reduce((s, m) => s + m.v, 0);
+    const tg = movs.filter(m => m.t === 'gasto').reduce((s, m) => s + m.v, 0);
+    const noData = document.getElementById('metasNoData');
+    const body = document.getElementById('metasBody');
+    if (ti > 0) {
+      if (noData) noData.style.display = 'none';
+      body.style.display = 'flex';
+      document.getElementById('metaSueldo').textContent = fmt(ti);
+      renderMetas(ti, tg);
+    } else {
+      if (noData) noData.style.display = 'block';
+      body.style.display = 'none';
+    }
   }
 
   /* ══════════════════════════════════════
      HOGAR
   ══════════════════════════════════════ */
   let ints = [];
-  let gass = [];
 
   function addInt(){
     const n = document.getElementById('iNombre').value.trim();
@@ -1112,48 +1120,42 @@
         </td></tr>`;
     }).join('');
   }
-  function addGas(){
-    const d = document.getElementById('gDesc').value.trim();
-    const v = getRaw('gMonto');
-    if (!d)     { alert('Ingresa la descripcion'); return; }
-    if (v <= 0) { alert('Ingresa un monto valido'); return; }
-    gass.push({id:Date.now(), d, v});
-    document.getElementById('gDesc').value = '';
-    document.getElementById('gMonto').value = '';
-    scheduleSave(); renderGass(); hideRes();
-    document.getElementById('gDesc').focus();
+  function getHogarGastos() {
+    const { month, year } = getCurrentMonthYear();
+    return movs.filter(m => {
+      if (m.t !== 'gasto' || !m.rec) return false;
+      if (!FIJOS_CATS.includes(m.c)) return false;
+      const d = new Date(m.ts || m.id);
+      return d.getMonth() === month && d.getFullYear() === year;
+    });
   }
 
-  function delGas(id){ gass=gass.filter(g=>g.id!==id); scheduleSave(); renderGass(); hideRes(); }
-
   function renderGass(){
-    const e=document.getElementById('emptyGas'), w=document.getElementById('wrapGas');
+    const gastos = getHogarGastos();
+    const e=document.getElementById('emptyGasAuto'), w=document.getElementById('wrapGas');
     const tb=document.getElementById('tboxGas');
-    if (!gass.length){ e.style.display='block'; w.style.display='none'; tb.style.display='none'; return; }
+    if (!gastos.length){ e.style.display='block'; w.style.display='none'; tb.style.display='none'; return; }
     e.style.display='none'; w.style.display='block'; tb.style.display='flex';
-    const tot = gass.reduce((s,g)=>s+g.v, 0);
+    const tot = gastos.reduce((s,g)=>s+g.v, 0);
     document.getElementById('tvGas').textContent = fmt(tot);
-    document.getElementById('bodyGas').innerHTML = gass.map(g=>`
-      <tr><td>${esc(g.d)}</td><td>${fmt(g.v)}</td>
-      <td style="text-align:right">
-        <button class="bs" style="padding:4px 8px;font-size:.75rem" onclick="editGas(${g.id})">✏️</button>
-        <button class="bd" onclick="delGas(${g.id})">✕</button>
-      </td></tr>
+    document.getElementById('bodyGas').innerHTML = gastos.map(g=>`
+      <tr><td>${esc(g.d)}</td><td>${EMOJIS[g.c]||'📦'} ${g.c}</td><td>${fmt(g.v)}</td></tr>
     `).join('');
   }
 
   function limpiarHogar(){
-    if (!ints.length && !gass.length) return;
-    if (!confirm('¿Borrar todos los datos del hogar?')) return;
-    ints=[]; gass=[]; scheduleSave(); renderInts(); renderGass(); hideRes();
+    if (!ints.length) return;
+    if (!confirm('¿Borrar todos los integrantes?')) return;
+    ints=[]; scheduleSave(); renderInts(); hideRes();
   }
 
   function hideRes(){ document.getElementById('resCard').style.display='none'; }
 
   function calcular(){
     if (!ints.length){ alert('Agrega al menos un integrante'); return; }
-    if (!gass.length){ alert('Agrega al menos un gasto'); return; }
-    const tg = gass.reduce((s,g)=>s+g.v, 0);
+    const gastos = getHogarGastos();
+    if (!gastos.length){ alert('No hay gastos fijos registrados este mes. Ve a Personal y agrega gastos marcados como Recurrente.'); return; }
+    const tg = gastos.reduce((s,g)=>s+g.v, 0);
     const ti = ints.reduce((s,i)=>s+i.v, 0);
     const body = document.getElementById('resBody');
     body.innerHTML = '';
@@ -1194,55 +1196,6 @@
   let filtP = 'todos';
   let budgetLimit = 0;
   let metasData = { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
-
-  function promptBudget() {
-    const val = prompt('Ingresa tu meta de presupuesto mensual ($):', budgetLimit ? budgetLimit.toLocaleString('es-CL') : '');
-    if (val === null) return;
-    const num = parseFloat(val.replace(/\./g,'').replace(',','.')) || 0;
-    budgetLimit = num;
-    scheduleSave();
-    renderP();
-  }
-
-  function checkBudget(totalGastos) {
-    const bSpent = document.getElementById('bSpent');
-    const bLimit = document.getElementById('bLimit');
-    const bRest = document.getElementById('bRest');
-    const bBarra = document.getElementById('bBarra');
-    const bAlert = document.getElementById('bAlert');
-
-    bSpent.textContent = fmt(totalGastos);
-
-    if (budgetLimit <= 0) {
-      bLimit.textContent = 'Sin limite';
-      bRest.textContent = 'Disponible: —';
-      bBarra.style.width = '0%';
-      bAlert.style.display = 'none';
-      return;
-    }
-
-    bLimit.textContent = fmt(budgetLimit);
-    const rest = budgetLimit - totalGastos;
-    bRest.textContent = (rest < 0 ? 'Excedido: ' : 'Disponible: ') + fmt(rest);
-
-    const pct = Math.min((totalGastos / budgetLimit) * 100, 100);
-    bBarra.style.width = pct + '%';
-
-    if (pct >= 100) {
-      bBarra.className = 'bfill peligro';
-      bAlert.className = 'b-alert danger';
-      bAlert.innerHTML = `⚠️ <strong>¡Atencion!</strong> Has superado tu presupuesto mensual por ${fmt(Math.abs(rest))}.`;
-      bAlert.style.display = 'flex';
-    } else if (pct >= 80) {
-      bBarra.className = 'bfill peligro';
-      bAlert.className = 'b-alert warn';
-      bAlert.innerHTML = `⚡ <strong>Advertencia:</strong> Has consumido el ${pct.toFixed(0)}% de tu presupuesto. Quedan ${fmt(rest)}.`;
-      bAlert.style.display = 'flex';
-    } else {
-      bBarra.className = 'bfill';
-      bAlert.style.display = 'none';
-    }
-  }
 
   function addMov(){
     const d = document.getElementById('pDesc').value.trim();
@@ -1288,29 +1241,12 @@
     const ti = movs.filter(m=>m.t==='ingreso').reduce((s,m)=>s+m.v, 0);
     const tg = movs.filter(m=>m.t==='gasto').reduce((s,m)=>s+m.v, 0);
     const bal = ti-tg;
-    const pct = ti>0 ? Math.min((tg/ti)*100,100) : 0;
 
     document.getElementById('pIngresos').textContent = fmt(ti);
     document.getElementById('pGastos').textContent = fmt(tg);
     const bel = document.getElementById('pBalance');
     bel.textContent = (bal<0?'-':'') + fmt(bal);
     bel.className = 'pv pvb' + (bal<0?' neg':'');
-    document.getElementById('pPct').textContent = Math.round(pct)+'%';
-    const bf = document.getElementById('pBarra');
-    bf.style.width = pct+'%';
-    bf.className = 'bfill' + (pct>80?' peligro':'');
-
-    checkBudget(tg);
-
-    // Metas Financieras
-    const metasCard = document.getElementById('metasCard');
-    if (ti > 0) {
-      metasCard.style.display = 'block';
-      document.getElementById('metaSueldo').textContent = fmt(ti);
-      renderMetas(ti, tg);
-    } else {
-      metasCard.style.display = 'none';
-    }
 
     const lista = document.getElementById('pLista');
     const fil = filtP==='todos' ? movs : movs.filter(m=>m.t===filtP);
@@ -1354,11 +1290,6 @@
   /* ══════════════════════════════════════
      METAS FINANCIERAS
   ══════════════════════════════════════ */
-  function getCurrentMonthYear() {
-    const now = new Date();
-    return { month: now.getMonth(), year: now.getFullYear() };
-  }
-
   function getMonthlyAssigned(arr) {
     const { month, year } = getCurrentMonthYear();
     return (arr || []).filter(a => a.month === month && a.year === year).reduce((s, a) => s + a.amount, 0);
@@ -1371,7 +1302,9 @@
     const targetEmergencia = ingresos * 4;
     const targetInversion = ingresos * 200;
 
-    // Ahorro mensual
+    const { month, year } = getCurrentMonthYear();
+
+    // Ahorro mensual (manual assignment)
     const ahorroActual = getMonthlyAssigned(metasData.ahorro_asignaciones);
     const ahorroPct = targetAhorro > 0 ? Math.min((ahorroActual / targetAhorro) * 100, 100) : 0;
     document.getElementById('metaAhorroTarget').textContent = fmt(targetAhorro);
@@ -1379,8 +1312,12 @@
     document.getElementById('metaAhorroPct').textContent = Math.round(ahorroPct) + '%';
     document.getElementById('metaAhorroBarra').style.width = ahorroPct + '%';
 
-    // Gustos y salidas mensual
-    const gustosActual = getMonthlyAssigned(metasData.gustos_asignaciones);
+    // Gustos y salidas (AUTO: from Entretenimiento + Ropa categories this month)
+    const gustosActual = movs.filter(m => {
+      if (m.t !== 'gasto') return false;
+      const d = new Date(m.ts || m.id);
+      return d.getMonth() === month && d.getFullYear() === year && GUSTOS_CATS.includes(m.c);
+    }).reduce((s, m) => s + m.v, 0);
     const gustosPct = targetGustos > 0 ? Math.min((gustosActual / targetGustos) * 100, 100) : 0;
     document.getElementById('metaGustosTarget').textContent = fmt(targetGustos);
     document.getElementById('metaGustosActual').textContent = fmt(gustosActual);
@@ -1389,12 +1326,11 @@
     gustosBarra.style.width = gustosPct + '%';
     gustosBarra.style.background = gustosPct >= 80 ? 'linear-gradient(90deg,var(--yw),var(--rd))' : 'linear-gradient(90deg,#ec4899,#db2777)';
 
-    // Gastos fijos (calculado desde movimientos recurrentes del mes actual)
-    const { month, year } = getCurrentMonthYear();
+    // Gastos fijos (AUTO: from fixed categories marked as recurrent this month)
     const fijosMes = movs.filter(m => {
       if (m.t !== 'gasto') return false;
       const d = new Date(m.ts || m.id);
-      return d.getMonth() === month && d.getFullYear() === year && m.rec;
+      return d.getMonth() === month && d.getFullYear() === year && m.rec && FIJOS_CATS.includes(m.c);
     }).reduce((s, m) => s + m.v, 0);
     const fijosPct = targetFijos > 0 ? Math.min((fijosMes / targetFijos) * 100, 100) : 0;
     document.getElementById('metaFijosTarget').textContent = fmt(targetFijos);
@@ -1407,6 +1343,7 @@
     if (fijosPct >= 100) {
       fijosAlert.textContent = '⚠️ Has superado el tope de gastos fijos recomendado';
       fijosAlert.style.display = 'block';
+      fijosAlert.style.color = 'var(--rd)';
     } else if (fijosPct >= 85) {
       fijosAlert.textContent = '⚡ Estas cerca del limite de gastos fijos (' + Math.round(fijosPct) + '%)';
       fijosAlert.style.display = 'block';
@@ -1415,7 +1352,7 @@
       fijosAlert.style.display = 'none';
     }
 
-    // Fondo de emergencia (acumulado total)
+    // Fondo de emergencia (acumulado total, manual)
     const emergenciaActual = metasData.emergencia_total || 0;
     const emergenciaPct = targetEmergencia > 0 ? Math.min((emergenciaActual / targetEmergencia) * 100, 100) : 0;
     document.getElementById('metaEmergenciaTarget').textContent = fmt(targetEmergencia);
@@ -1429,9 +1366,8 @@
     const mesesParaMeta = ahorroMensualReal > 0 ? Math.ceil(targetInversion / ahorroMensualReal) : 0;
     const anios = Math.floor(mesesParaMeta / 12);
     const mesesResto = mesesParaMeta % 12;
-    const proyeccionText = mesesParaMeta > 0 ? (anios > 0 ? anios + ' años ' + mesesResto + ' meses' : mesesResto + ' meses') : '—';
+    const proyeccionText = mesesParaMeta > 0 ? (anios > 0 ? anios + ' anos ' + mesesResto + ' meses' : mesesResto + ' meses') : '—';
     document.getElementById('metaInversionProyeccion').textContent = proyeccionText;
-    // Porcentaje basado en ahorro acumulado total vs meta
     const ahorroTotal = (metasData.ahorro_asignaciones || []).reduce((s, a) => s + a.amount, 0);
     const invPct = targetInversion > 0 ? Math.min((ahorroTotal / targetInversion) * 100, 100) : 0;
     document.getElementById('metaInversionPct').textContent = invPct.toFixed(2) + '%';
@@ -1443,9 +1379,6 @@
     if (tipo === 'ahorro') {
       label = '¿Cuanto asignas a ahorro este mes?';
       placeholder = 'Ej: 100.000';
-    } else if (tipo === 'gustos') {
-      label = '¿Cuanto gastaste en gustos/salidas?';
-      placeholder = 'Ej: 30.000';
     } else if (tipo === 'emergencia') {
       label = '¿Cuanto agregas al fondo de emergencia?';
       placeholder = 'Ej: 50.000';
@@ -1464,15 +1397,12 @@
       if (tipo === 'ahorro') {
         if (!metasData.ahorro_asignaciones) metasData.ahorro_asignaciones = [];
         metasData.ahorro_asignaciones.push({ amount: v, ts: Date.now(), month, year });
-      } else if (tipo === 'gustos') {
-        if (!metasData.gustos_asignaciones) metasData.gustos_asignaciones = [];
-        metasData.gustos_asignaciones.push({ amount: v, ts: Date.now(), month, year });
       } else if (tipo === 'emergencia') {
         metasData.emergencia_total = (metasData.emergencia_total || 0) + v;
       }
 
       scheduleSave();
-      renderP();
+      renderMetasPanel();
       return true;
     });
     setupFmt('metaMontoInput');
@@ -1608,11 +1538,9 @@
      FORMATEO NUMERICO — INIT
   ══════════════════════════════════════ */
   setupFmt('iIngreso');
-  setupFmt('gMonto');
   setupFmt('pMonto');
 
   document.getElementById('iIngreso').addEventListener('keypress',e=>{if(e.key==='Enter')addInt();});
-  document.getElementById('gMonto').addEventListener('keypress',e=>{if(e.key==='Enter')addGas();});
   document.getElementById('pDesc').addEventListener('keypress',e=>{if(e.key==='Enter')addMov();});
 
   // Enter on auth fields
