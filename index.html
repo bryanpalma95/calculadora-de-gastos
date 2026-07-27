@@ -247,7 +247,8 @@
     .sidebar-overlay.open{opacity:1;pointer-events:all}
     .sidebar{position:fixed;top:0;right:-280px;width:280px;height:100%;
       background:var(--card);z-index:9001;display:flex;flex-direction:column;
-      box-shadow:-4px 0 20px rgba(0,0,0,0.2);transition:right .3s ease}
+      box-shadow:-4px 0 20px rgba(0,0,0,0.2);transition:right .3s ease;
+      overflow-y:auto}
     .sidebar.open{right:0}
     .sidebar-header{padding:20px;border-bottom:1px solid var(--bdr);
       display:flex;align-items:center;justify-content:space-between}
@@ -291,6 +292,13 @@
       border-radius:50%;animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
     .loading-screen p{color:rgba(255,255,255,.8);font-size:.9rem}
+    /* Calculator */
+    .calc-btn{padding:16px;font-size:1.2rem;font-weight:700;border:none;border-radius:10px;
+      cursor:pointer;background:var(--sub);color:var(--t1);transition:all .15s;
+      border:1px solid var(--bdr)}
+    .calc-btn:active{transform:scale(.95)}
+    .calc-op{background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;border-color:transparent}
+    .calc-eq{background:linear-gradient(135deg,var(--gr),var(--gr2));color:#fff;border-color:transparent}
   </style>
 </head>
 <body>
@@ -370,8 +378,23 @@
       <button class="sidebar-item" onclick="switchTab('resumen',this)">
         <span class="si-icon">📅</span> Resumen Mensual
       </button>
+      <button class="sidebar-item" onclick="switchTab('calc',this)">
+        <span class="si-icon">🧮</span> Calculadora
+      </button>
     </nav>
     <div class="sidebar-footer">
+      <div id="sidebarDate" onclick="toggleCalendar()" style="text-align:center;padding:10px;margin-bottom:12px;background:var(--sub);border-radius:10px;cursor:pointer;border:1px solid var(--bdr);transition:all .2s">
+        <div style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--tm);margin-bottom:4px">📅 Hoy</div>
+        <div id="sidebarDateText" style="font-size:.9rem;font-weight:700;color:var(--t1)"></div>
+      </div>
+      <div id="calendarPopup" style="display:none;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 8px 24px var(--sh)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <button onclick="calNavMonth(-1)" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--t1);padding:4px 8px">◀</button>
+          <span id="calMonthYear" style="font-size:.85rem;font-weight:700;color:var(--t1)"></span>
+          <button onclick="calNavMonth(1)" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--t1);padding:4px 8px">▶</button>
+        </div>
+        <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center"></div>
+      </div>
       <button class="sidebar-logout" onclick="doLogout()">🚪 Cerrar Sesion</button>
     </div>
   </div>
@@ -642,6 +665,38 @@
     <div id="rEmpty" class="card" style="display:none">
       <div class="empty"><span style="font-size:32px;display:block;margin-bottom:10px">📭</span>
         No hay movimientos registrados en este periodo.</div>
+    </div>
+  </div>
+
+  <!-- PANEL CALCULADORA -->
+  <div class="panel" id="panel-calc">
+    <div class="card">
+      <h2>🧮 Calculadora</h2>
+      <div id="calcDisplay" style="background:var(--sub);border:2px solid var(--bdr);border-radius:10px;padding:16px 20px;margin-bottom:16px;text-align:right;min-height:70px;display:flex;flex-direction:column;justify-content:center">
+        <div id="calcExpr" style="font-size:.8rem;color:var(--tm);min-height:18px;word-break:break-all"></div>
+        <div id="calcResult" style="font-size:1.8rem;font-weight:800;color:var(--t1);word-break:break-all">0</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+        <button class="calc-btn calc-op" onclick="calcInput('C')">C</button>
+        <button class="calc-btn calc-op" onclick="calcInput('±')">±</button>
+        <button class="calc-btn calc-op" onclick="calcInput('%')">%</button>
+        <button class="calc-btn calc-op" onclick="calcInput('÷')">÷</button>
+        <button class="calc-btn" onclick="calcInput('7')">7</button>
+        <button class="calc-btn" onclick="calcInput('8')">8</button>
+        <button class="calc-btn" onclick="calcInput('9')">9</button>
+        <button class="calc-btn calc-op" onclick="calcInput('×')">×</button>
+        <button class="calc-btn" onclick="calcInput('4')">4</button>
+        <button class="calc-btn" onclick="calcInput('5')">5</button>
+        <button class="calc-btn" onclick="calcInput('6')">6</button>
+        <button class="calc-btn calc-op" onclick="calcInput('-')">−</button>
+        <button class="calc-btn" onclick="calcInput('1')">1</button>
+        <button class="calc-btn" onclick="calcInput('2')">2</button>
+        <button class="calc-btn" onclick="calcInput('3')">3</button>
+        <button class="calc-btn calc-op" onclick="calcInput('+')">+</button>
+        <button class="calc-btn" style="grid-column:span 2" onclick="calcInput('0')">0</button>
+        <button class="calc-btn" onclick="calcInput('.')">.</button>
+        <button class="calc-btn calc-eq" onclick="calcInput('=')">=</button>
+      </div>
     </div>
   </div>
 
@@ -1062,7 +1117,7 @@
     const saved = localStorage.getItem('active_tab');
     if (saved && document.getElementById('panel-' + saved)) {
       const btns = document.querySelectorAll('.sidebar-nav .sidebar-item');
-      const tabs = ['hogar', 'personal', 'metas', 'resumen'];
+      const tabs = ['hogar', 'personal', 'metas', 'resumen', 'calc'];
       const idx = tabs.indexOf(saved);
       if (idx >= 0 && btns[idx]) {
         switchTab(saved, btns[idx]);
@@ -1533,6 +1588,183 @@
       </tr>`).join('');
     rMovCard.style.display='block';
   }
+
+  /* ══════════════════════════════════════
+     CALCULADORA
+  ══════════════════════════════════════ */
+  let calcExpr = '';
+  let calcNewNumber = true;
+
+  function calcInput(val) {
+    const display = document.getElementById('calcResult');
+    const exprEl = document.getElementById('calcExpr');
+
+    if (val === 'C') {
+      calcExpr = '';
+      calcNewNumber = true;
+      display.textContent = '0';
+      exprEl.textContent = '';
+      return;
+    }
+
+    if (val === '±') {
+      if (display.textContent !== '0') {
+        if (display.textContent.startsWith('-')) {
+          display.textContent = display.textContent.slice(1);
+        } else {
+          display.textContent = '-' + display.textContent;
+        }
+        // Update expr
+        const parts = calcExpr.match(/(.*)([+\-×÷])(.+)$/);
+        if (parts) {
+          calcExpr = parts[1] + parts[2] + display.textContent;
+        } else {
+          calcExpr = display.textContent;
+        }
+        exprEl.textContent = calcExpr;
+      }
+      return;
+    }
+
+    if (val === '=') {
+      try {
+        const expr = calcExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+        const result = Function('"use strict"; return (' + expr + ')')();
+        exprEl.textContent = calcExpr + ' =';
+        display.textContent = isFinite(result) ? parseFloat(result.toFixed(10)).toLocaleString('es-CL') : 'Error';
+        calcExpr = isFinite(result) ? String(parseFloat(result.toFixed(10))) : '';
+        calcNewNumber = true;
+      } catch (e) {
+        display.textContent = 'Error';
+        calcExpr = '';
+        calcNewNumber = true;
+      }
+      return;
+    }
+
+    if (val === '%') {
+      try {
+        const expr = calcExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+        const result = Function('"use strict"; return (' + expr + ')')() / 100;
+        display.textContent = isFinite(result) ? parseFloat(result.toFixed(10)).toLocaleString('es-CL') : 'Error';
+        calcExpr = isFinite(result) ? String(parseFloat(result.toFixed(10))) : '';
+        exprEl.textContent = calcExpr;
+        calcNewNumber = true;
+      } catch (e) {
+        display.textContent = 'Error';
+      }
+      return;
+    }
+
+    const ops = ['+', '-', '×', '÷', '−'];
+    if (ops.includes(val)) {
+      calcExpr += val;
+      exprEl.textContent = calcExpr;
+      calcNewNumber = true;
+      return;
+    }
+
+    // Number or dot
+    if (calcNewNumber) {
+      if (val === '.') {
+        calcExpr += '0.';
+        display.textContent = '0.';
+      } else {
+        calcExpr += val;
+        display.textContent = val;
+      }
+      calcNewNumber = false;
+    } else {
+      calcExpr += val;
+      // Show current number
+      const parts = calcExpr.split(/[+\-×÷−]/);
+      display.textContent = parts[parts.length - 1] || '0';
+    }
+    exprEl.textContent = calcExpr;
+  }
+
+  // Keyboard support for calculator
+  document.addEventListener('keydown', function(e) {
+    if (!document.getElementById('panel-calc').classList.contains('active')) return;
+    const key = e.key;
+    if (key >= '0' && key <= '9') calcInput(key);
+    else if (key === '.') calcInput('.');
+    else if (key === '+') calcInput('+');
+    else if (key === '-') calcInput('-');
+    else if (key === '*') calcInput('×');
+    else if (key === '/') { e.preventDefault(); calcInput('÷'); }
+    else if (key === 'Enter') calcInput('=');
+    else if (key === 'Escape') calcInput('C');
+    else if (key === '%') calcInput('%');
+    else if (key === 'Backspace') {
+      if (calcExpr.length > 0) {
+        calcExpr = calcExpr.slice(0, -1);
+        document.getElementById('calcExpr').textContent = calcExpr;
+        const parts = calcExpr.split(/[+\-×÷−]/);
+        document.getElementById('calcResult').textContent = parts[parts.length - 1] || '0';
+      }
+    }
+  });
+
+  /* ══════════════════════════════════════
+     CALENDARIO SIDEBAR
+  ══════════════════════════════════════ */
+  let calDate = new Date();
+
+  function initSidebarDate() {
+    const hoy = new Date();
+    const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    const txt = hoy.toLocaleDateString('es-CL', opts);
+    document.getElementById('sidebarDateText').textContent = txt.charAt(0).toUpperCase() + txt.slice(1);
+  }
+
+  function toggleCalendar() {
+    const popup = document.getElementById('calendarPopup');
+    if (popup.style.display === 'none') {
+      calDate = new Date();
+      renderCalendar();
+      popup.style.display = 'block';
+    } else {
+      popup.style.display = 'none';
+    }
+  }
+
+  function calNavMonth(dir) {
+    calDate.setMonth(calDate.getMonth() + dir);
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    const dias = ['Lu','Ma','Mi','Ju','Vi','Sa','Do'];
+    const y = calDate.getFullYear();
+    const m = calDate.getMonth();
+    const hoy = new Date();
+
+    document.getElementById('calMonthYear').textContent = meses[m] + ' ' + y;
+
+    let firstDay = new Date(y, m, 1).getDay();
+    firstDay = firstDay === 0 ? 6 : firstDay - 1; // Monday start
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+    let html = dias.map(d => `<div style="font-size:.65rem;font-weight:700;color:var(--tm);padding:4px">${d}</div>`).join('');
+
+    for (let i = 0; i < firstDay; i++) {
+      html += '<div></div>';
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const isToday = d === hoy.getDate() && m === hoy.getMonth() && y === hoy.getFullYear();
+      const style = isToday
+        ? 'background:var(--ac);color:#fff;border-radius:50%;font-weight:700'
+        : 'color:var(--t1);border-radius:50%';
+      html += `<div style="padding:6px;font-size:.78rem;${style}">${d}</div>`;
+    }
+
+    document.getElementById('calGrid').innerHTML = html;
+  }
+
+  initSidebarDate();
 
   /* ══════════════════════════════════════
      FORMATEO NUMERICO — INIT
