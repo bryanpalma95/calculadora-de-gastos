@@ -678,7 +678,7 @@
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
         <button class="calc-btn calc-op" onclick="calcInput('C')">C</button>
-        <button class="calc-btn calc-op" onclick="calcInput('±')">±</button>
+        <button class="calc-btn calc-op" onclick="calcInput('⌫')">⌫</button>
         <button class="calc-btn calc-op" onclick="calcInput('%')">%</button>
         <button class="calc-btn calc-op" onclick="calcInput('÷')">÷</button>
         <button class="calc-btn" onclick="calcInput('7')">7</button>
@@ -1607,30 +1607,25 @@
       return;
     }
 
-    if (val === '±') {
-      if (display.textContent !== '0') {
-        if (display.textContent.startsWith('-')) {
-          display.textContent = display.textContent.slice(1);
-        } else {
-          display.textContent = '-' + display.textContent;
-        }
-        // Update expr
-        const parts = calcExpr.match(/(.*)([+\-×÷])(.+)$/);
-        if (parts) {
-          calcExpr = parts[1] + parts[2] + display.textContent;
-        } else {
-          calcExpr = display.textContent;
-        }
+    if (val === '⌫') {
+      if (calcExpr.length > 0) {
+        calcExpr = calcExpr.slice(0, -1);
         exprEl.textContent = calcExpr;
+        const parts = calcExpr.split(/[+\-×÷−]/);
+        display.textContent = parts[parts.length - 1] || '0';
+        if (!calcExpr) calcNewNumber = true;
       }
       return;
     }
 
     if (val === '=') {
       try {
-        const expr = calcExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
+        // Remove trailing operator if any
+        let cleanExpr = calcExpr.replace(/[+\-×÷−]$/, '');
+        if (!cleanExpr) return;
+        const expr = cleanExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-');
         const result = Function('"use strict"; return (' + expr + ')')();
-        exprEl.textContent = calcExpr + ' =';
+        exprEl.textContent = cleanExpr + ' =';
         display.textContent = isFinite(result) ? parseFloat(result.toFixed(10)).toLocaleString('es-CL') : 'Error';
         calcExpr = isFinite(result) ? String(parseFloat(result.toFixed(10))) : '';
         calcNewNumber = true;
@@ -1658,6 +1653,13 @@
 
     const ops = ['+', '-', '×', '÷', '−'];
     if (ops.includes(val)) {
+      // Don't allow operator at the start (except minus for negative)
+      if (!calcExpr && val !== '-') return;
+      // Don't allow consecutive operators — replace the last one
+      const lastChar = calcExpr[calcExpr.length - 1];
+      if (ops.includes(lastChar)) {
+        calcExpr = calcExpr.slice(0, -1);
+      }
       calcExpr += val;
       exprEl.textContent = calcExpr;
       calcNewNumber = true;
@@ -1675,6 +1677,12 @@
       }
       calcNewNumber = false;
     } else {
+      // Prevent multiple dots in same number
+      if (val === '.') {
+        const parts = calcExpr.split(/[+\-×÷−]/);
+        const current = parts[parts.length - 1];
+        if (current.includes('.')) return;
+      }
       calcExpr += val;
       // Show current number
       const parts = calcExpr.split(/[+\-×÷−]/);
