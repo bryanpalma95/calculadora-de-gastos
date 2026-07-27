@@ -447,6 +447,99 @@
       <div class="bbg"><div class="bfill" id="pBarra" style="width:0%"></div></div>
     </div>
 
+    <!-- METAS FINANCIERAS -->
+    <div class="card" id="metasCard" style="display:none">
+      <h2>🎯 Metas Financieras</h2>
+      <p style="font-size:.8rem;color:var(--t2);margin-bottom:14px">Basado en tus ingresos mensuales de <strong id="metaSueldo">$0</strong></p>
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <!-- AHORRO MENSUAL -->
+        <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid var(--gr)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:20px">💰</span>
+            <div style="flex:1">
+              <div style="font-size:.72rem;font-weight:700;color:var(--tm);text-transform:uppercase">Ahorro Mensual</div>
+              <div style="font-size:.85rem;color:var(--t2)">Meta: <strong id="metaAhorroTarget">$0</strong> (10% del sueldo)</div>
+            </div>
+            <button class="bs" style="padding:5px 10px;font-size:.75rem" onclick="addToMeta('ahorro')">+ Asignar</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--tm);margin-bottom:4px">
+            <span>Asignado este mes: <strong id="metaAhorroActual" style="color:var(--gr)">$0</strong></span>
+            <span id="metaAhorroPct">0%</span>
+          </div>
+          <div class="bbg"><div class="bfill" id="metaAhorroBarra" style="width:0%"></div></div>
+        </div>
+
+        <!-- GUSTOS Y SALIDAS -->
+        <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid #ec4899">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:20px">🎉</span>
+            <div style="flex:1">
+              <div style="font-size:.72rem;font-weight:700;color:var(--tm);text-transform:uppercase">Gustos y Salidas</div>
+              <div style="font-size:.85rem;color:var(--t2)">Maximo: <strong id="metaGustosTarget">$0</strong> (20% del sueldo)</div>
+            </div>
+            <button class="bs" style="padding:5px 10px;font-size:.75rem;background:linear-gradient(135deg,#ec4899,#db2777)" onclick="addToMeta('gustos')">+ Asignar</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--tm);margin-bottom:4px">
+            <span>Gastado este mes: <strong id="metaGustosActual" style="color:#ec4899">$0</strong></span>
+            <span id="metaGustosPct">0%</span>
+          </div>
+          <div class="bbg"><div class="bfill" id="metaGustosBarra" style="width:0%"></div></div>
+        </div>
+
+        <!-- GASTOS FIJOS -->
+        <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid var(--rd)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:20px">🏠</span>
+            <div style="flex:1">
+              <div style="font-size:.72rem;font-weight:700;color:var(--tm);text-transform:uppercase">Gastos Fijos</div>
+              <div style="font-size:.85rem;color:var(--t2)">Tope: <strong id="metaFijosTarget">$0</strong> (70% del sueldo)</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--tm);margin-bottom:4px">
+            <span>Gastado este mes: <strong id="metaFijosActual" style="color:var(--rd)">$0</strong></span>
+            <span id="metaFijosPct">0%</span>
+          </div>
+          <div class="bbg"><div class="bfill" id="metaFijosBarra" style="width:0%"></div></div>
+          <div id="metaFijosAlert" style="display:none;margin-top:8px;font-size:.78rem;font-weight:600;color:var(--rd)"></div>
+        </div>
+
+        <!-- FONDO DE EMERGENCIA -->
+        <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid var(--yw)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:20px">🛡️</span>
+            <div style="flex:1">
+              <div style="font-size:.72rem;font-weight:700;color:var(--tm);text-transform:uppercase">Fondo de Emergencia</div>
+              <div style="font-size:.85rem;color:var(--t2)">Meta: <strong id="metaEmergenciaTarget">$0</strong> (4 sueldos)</div>
+            </div>
+            <button class="bs" style="padding:5px 10px;font-size:.75rem;background:linear-gradient(135deg,var(--yw),var(--yw2))" onclick="addToMeta('emergencia')">+ Agregar</button>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--tm);margin-bottom:4px">
+            <span>Acumulado: <strong id="metaEmergenciaActual" style="color:#d97706">$0</strong></span>
+            <span id="metaEmergenciaPct">0%</span>
+          </div>
+          <div class="bbg"><div class="bfill" id="metaEmergenciaBarra" style="width:0%;background:linear-gradient(90deg,var(--yw),var(--yw2))"></div></div>
+        </div>
+
+        <!-- META INVERSION -->
+        <div style="padding:14px;background:var(--sub);border-radius:10px;border-left:4px solid var(--ac)">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:20px">🏦</span>
+            <div style="flex:1">
+              <div style="font-size:.72rem;font-weight:700;color:var(--tm);text-transform:uppercase">Meta de Inversion (Libertad Financiera)</div>
+              <div style="font-size:.85rem;color:var(--t2)">Meta: <strong id="metaInversionTarget">$0</strong> (200 sueldos)</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--tm);margin-bottom:4px">
+            <span>Proyeccion desde ahorro mensual: <strong id="metaInversionProyeccion" style="color:var(--ac)">— meses</strong></span>
+            <span id="metaInversionPct">0%</span>
+          </div>
+          <div class="bbg"><div class="bfill" id="metaInversionBarra" style="width:0%"></div></div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- PRESUPUESTO MENSUAL -->
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
@@ -735,10 +828,12 @@
         gass = data.gastos_hogar || [];
         movs = data.movimientos || [];
         budgetLimit = data.budget_limit || 0;
+        metasData = data.metas || { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
         console.log('✅ Datos cargados desde Firestore:', {ints: ints.length, gass: gass.length, movs: movs.length});
       } else {
         // New user — start fresh
         ints = []; gass = []; movs = []; budgetLimit = 0;
+        metasData = { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
         await saveAllToFirestore();
         console.log('✅ Usuario nuevo, documento creado');
       }
@@ -747,6 +842,7 @@
       alert('Error al cargar datos desde la nube: ' + e.message + '\n\nVerifica:\n1. Que publicaste las reglas de Firestore\n2. Que no estas abriendo el archivo con file:// (usa un servidor local)');
       // Fallback to empty
       ints = []; gass = []; movs = []; budgetLimit = 0;
+      metasData = { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
     }
     renderInts(); renderGass(); renderP();
   }
@@ -764,6 +860,7 @@
         gastos_hogar: gass,
         movimientos: movs,
         budget_limit: budgetLimit,
+        metas: metasData,
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
       console.log('✅ Datos guardados en Firestore');
@@ -1096,6 +1193,7 @@
   let movs = [];
   let filtP = 'todos';
   let budgetLimit = 0;
+  let metasData = { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
 
   function promptBudget() {
     const val = prompt('Ingresa tu meta de presupuesto mensual ($):', budgetLimit ? budgetLimit.toLocaleString('es-CL') : '');
@@ -1204,6 +1302,16 @@
 
     checkBudget(tg);
 
+    // Metas Financieras
+    const metasCard = document.getElementById('metasCard');
+    if (ti > 0) {
+      metasCard.style.display = 'block';
+      document.getElementById('metaSueldo').textContent = fmt(ti);
+      renderMetas(ti, tg);
+    } else {
+      metasCard.style.display = 'none';
+    }
+
     const lista = document.getElementById('pLista');
     const fil = filtP==='todos' ? movs : movs.filter(m=>m.t===filtP);
     lista.innerHTML = !fil.length
@@ -1242,6 +1350,134 @@
           <div style="font-size:12px;color:var(--tm);min-width:70px;text-align:right;white-space:nowrap">${fmt(tot)}</div>
         </div>`).join('');
   }
+
+  /* ══════════════════════════════════════
+     METAS FINANCIERAS
+  ══════════════════════════════════════ */
+  function getCurrentMonthYear() {
+    const now = new Date();
+    return { month: now.getMonth(), year: now.getFullYear() };
+  }
+
+  function getMonthlyAssigned(arr) {
+    const { month, year } = getCurrentMonthYear();
+    return (arr || []).filter(a => a.month === month && a.year === year).reduce((s, a) => s + a.amount, 0);
+  }
+
+  function renderMetas(ingresos, gastosTotales) {
+    const targetAhorro = ingresos * 0.1;
+    const targetGustos = ingresos * 0.2;
+    const targetFijos = ingresos * 0.7;
+    const targetEmergencia = ingresos * 4;
+    const targetInversion = ingresos * 200;
+
+    // Ahorro mensual
+    const ahorroActual = getMonthlyAssigned(metasData.ahorro_asignaciones);
+    const ahorroPct = targetAhorro > 0 ? Math.min((ahorroActual / targetAhorro) * 100, 100) : 0;
+    document.getElementById('metaAhorroTarget').textContent = fmt(targetAhorro);
+    document.getElementById('metaAhorroActual').textContent = fmt(ahorroActual);
+    document.getElementById('metaAhorroPct').textContent = Math.round(ahorroPct) + '%';
+    document.getElementById('metaAhorroBarra').style.width = ahorroPct + '%';
+
+    // Gustos y salidas mensual
+    const gustosActual = getMonthlyAssigned(metasData.gustos_asignaciones);
+    const gustosPct = targetGustos > 0 ? Math.min((gustosActual / targetGustos) * 100, 100) : 0;
+    document.getElementById('metaGustosTarget').textContent = fmt(targetGustos);
+    document.getElementById('metaGustosActual').textContent = fmt(gustosActual);
+    document.getElementById('metaGustosPct').textContent = Math.round(gustosPct) + '%';
+    const gustosBarra = document.getElementById('metaGustosBarra');
+    gustosBarra.style.width = gustosPct + '%';
+    gustosBarra.style.background = gustosPct >= 80 ? 'linear-gradient(90deg,var(--yw),var(--rd))' : 'linear-gradient(90deg,#ec4899,#db2777)';
+
+    // Gastos fijos (calculado desde movimientos recurrentes del mes actual)
+    const { month, year } = getCurrentMonthYear();
+    const fijosMes = movs.filter(m => {
+      if (m.t !== 'gasto') return false;
+      const d = new Date(m.ts || m.id);
+      return d.getMonth() === month && d.getFullYear() === year && m.rec;
+    }).reduce((s, m) => s + m.v, 0);
+    const fijosPct = targetFijos > 0 ? Math.min((fijosMes / targetFijos) * 100, 100) : 0;
+    document.getElementById('metaFijosTarget').textContent = fmt(targetFijos);
+    document.getElementById('metaFijosActual').textContent = fmt(fijosMes);
+    document.getElementById('metaFijosPct').textContent = Math.round(fijosPct) + '%';
+    const fijosBarra = document.getElementById('metaFijosBarra');
+    fijosBarra.style.width = fijosPct + '%';
+    fijosBarra.style.background = fijosPct >= 90 ? 'linear-gradient(90deg,var(--yw),var(--rd))' : 'linear-gradient(90deg,var(--rd),var(--rd2))';
+    const fijosAlert = document.getElementById('metaFijosAlert');
+    if (fijosPct >= 100) {
+      fijosAlert.textContent = '⚠️ Has superado el tope de gastos fijos recomendado';
+      fijosAlert.style.display = 'block';
+    } else if (fijosPct >= 85) {
+      fijosAlert.textContent = '⚡ Estas cerca del limite de gastos fijos (' + Math.round(fijosPct) + '%)';
+      fijosAlert.style.display = 'block';
+      fijosAlert.style.color = '#d97706';
+    } else {
+      fijosAlert.style.display = 'none';
+    }
+
+    // Fondo de emergencia (acumulado total)
+    const emergenciaActual = metasData.emergencia_total || 0;
+    const emergenciaPct = targetEmergencia > 0 ? Math.min((emergenciaActual / targetEmergencia) * 100, 100) : 0;
+    document.getElementById('metaEmergenciaTarget').textContent = fmt(targetEmergencia);
+    document.getElementById('metaEmergenciaActual').textContent = fmt(emergenciaActual);
+    document.getElementById('metaEmergenciaPct').textContent = emergenciaPct.toFixed(1) + '%';
+    document.getElementById('metaEmergenciaBarra').style.width = emergenciaPct + '%';
+
+    // Meta inversion (proyeccion basada en ahorro mensual)
+    document.getElementById('metaInversionTarget').textContent = fmt(targetInversion);
+    const ahorroMensualReal = ahorroActual > 0 ? ahorroActual : targetAhorro;
+    const mesesParaMeta = ahorroMensualReal > 0 ? Math.ceil(targetInversion / ahorroMensualReal) : 0;
+    const anios = Math.floor(mesesParaMeta / 12);
+    const mesesResto = mesesParaMeta % 12;
+    const proyeccionText = mesesParaMeta > 0 ? (anios > 0 ? anios + ' años ' + mesesResto + ' meses' : mesesResto + ' meses') : '—';
+    document.getElementById('metaInversionProyeccion').textContent = proyeccionText;
+    // Porcentaje basado en ahorro acumulado total vs meta
+    const ahorroTotal = (metasData.ahorro_asignaciones || []).reduce((s, a) => s + a.amount, 0);
+    const invPct = targetInversion > 0 ? Math.min((ahorroTotal / targetInversion) * 100, 100) : 0;
+    document.getElementById('metaInversionPct').textContent = invPct.toFixed(2) + '%';
+    document.getElementById('metaInversionBarra').style.width = invPct + '%';
+  }
+
+  function addToMeta(tipo) {
+    let label, placeholder;
+    if (tipo === 'ahorro') {
+      label = '¿Cuanto asignas a ahorro este mes?';
+      placeholder = 'Ej: 100.000';
+    } else if (tipo === 'gustos') {
+      label = '¿Cuanto gastaste en gustos/salidas?';
+      placeholder = 'Ej: 30.000';
+    } else if (tipo === 'emergencia') {
+      label = '¿Cuanto agregas al fondo de emergencia?';
+      placeholder = 'Ej: 50.000';
+    }
+
+    openModal('💰 Asignar a Meta', `
+      <div class="fg"><label>${label}</label>
+        <input type="text" id="metaMontoInput" placeholder="${placeholder}" inputmode="numeric">
+      </div>
+    `, function() {
+      const v = getRaw('metaMontoInput');
+      if (v <= 0) { alert('Ingresa un monto valido'); return false; }
+
+      const { month, year } = getCurrentMonthYear();
+
+      if (tipo === 'ahorro') {
+        if (!metasData.ahorro_asignaciones) metasData.ahorro_asignaciones = [];
+        metasData.ahorro_asignaciones.push({ amount: v, ts: Date.now(), month, year });
+      } else if (tipo === 'gustos') {
+        if (!metasData.gustos_asignaciones) metasData.gustos_asignaciones = [];
+        metasData.gustos_asignaciones.push({ amount: v, ts: Date.now(), month, year });
+      } else if (tipo === 'emergencia') {
+        metasData.emergencia_total = (metasData.emergencia_total || 0) + v;
+      }
+
+      scheduleSave();
+      renderP();
+      return true;
+    });
+    setupFmt('metaMontoInput');
+  }
+
   /* ══════════════════════════════════════
      RESUMEN MENSUAL
   ══════════════════════════════════════ */
