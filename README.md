@@ -1,22 +1,51 @@
-# 🏠 Calculadora de Gastos del Hogar
+# 💰 Calculadora de Gastos
 
-Herramienta web para distribuir gastos del hogar de forma proporcional según el ingreso de cada integrante.
+Aplicación web de control financiero personal y del hogar con sincronización en la nube.
 
 ## Funcionalidades
 
-- Agrega integrantes con su ingreso mensual
-- Registra gastos comunes del hogar
-- Calcula automáticamente cuánto debe pagar cada persona según su proporción de ingresos
-- Muestra cuánto le sobra o falta a cada integrante después de pagar su parte
-- Resumen con total de gastos, ingresos y ratio gastos/ingresos
+### 🏠 Hogar
+- Registro de integrantes con su ingreso mensual
+- Gastos del hogar se alimentan automáticamente desde los gastos fijos/recurrentes registrados en Personal
+- Distribución proporcional según ingresos (cuánto paga cada uno, cuánto le sobra)
+
+### 👤 Personal
+- Registro de ingresos y gastos con categorías
+- Categorías personalizadas (el usuario puede crear las suyas)
+- Marcado de gastos fijos/recurrentes
+- Filtros por tipo (todos, gastos, ingresos)
+- Gráfico donut por categoría
+- Mini calculadora integrada en el campo de monto
+
+### 🎯 Metas Financieras
+- Ahorro mensual (10% del sueldo) — asignación manual
+- Gustos y salidas (20% del sueldo) — cálculo automático desde categorías Entretenimiento/Ropa
+- Gastos fijos (70% del sueldo) — cálculo automático desde gastos recurrentes
+- Fondo de emergencia (4 sueldos) — acumulado manual
+- Meta de inversión (200 sueldos) — proyección basada en el ahorro
+- Presupuestos por categoría con alertas al 80% y 100%
+
+### 📅 Resumen Mensual
+- Vista consolidada por mes/año
+- Estadísticas: ingresos, gastos, balance, promedio
+- Gráfico por categoría
+- Cargar gastos fijos del mes
+- Exportar a CSV (compatible con Excel)
+
+### 🧮 Calculadora
+- Calculadora completa con operaciones básicas
+- Soporte de teclado (números, operadores, Enter, Escape, Backspace)
+- Botón "Copiar a Monto" que envía el resultado al formulario
+- Mini calculadora accesible desde el campo de monto (ícono 🧮)
+
+### Extras
 - Modo oscuro / claro con persistencia
-- Datos guardados en localStorage (no se pierden al cerrar)
+- Menú lateral con navegación, calendario y fecha actual
+- Recuerda la pestaña activa al refrescar
+- Login con email y contraseña (Firebase Auth)
+- Recuperar contraseña por email
+- Datos sincronizados en la nube (Firebase Firestore)
+- Funciona en móvil y escritorio (responsive)
 
-## Archivos
+## Estructura del Proyecto
 
-- `calculadora.html` — Calculadora de gastos del hogar con distribución proporcional
-- `index.html` — Calculadora de gastos personales (ingresos y gastos individuales)
-
-## Uso
-
-Abre `calculadora.html` directamente en el navegador, sin instalación ni servidor.
