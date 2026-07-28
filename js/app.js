@@ -1,40 +1,6 @@
-/*
- * ════════════════════════════════════════════════════════════
- * CALCULADORA DE GASTOS - APP.JS
- * ════════════════════════════════════════════════════════════
- *
- * INSTRUCCIONES:
- * Copia todo el contenido entre <script> y </script> de
- * prueba-index.html y pegalo aqui (sin las etiquetas script).
- *
- * El archivo prueba-index.html tiene el script desde aprox.
- * la linea 732 hasta la linea 1980.
- *
- * ESTRUCTURA DEL CODIGO (secciones):
- * 1. FIREBASE INIT - Configuracion y conexion
- * 2. AUTH LOGIC - Login, registro, recuperar contrasena
- * 3. FIRESTORE SYNC - Guardar y cargar datos de la nube
- * 4. UTILIDADES - fmt(), esc(), getRaw(), setupFmt()
- * 5. CATEGORIAS - Categorias dinamicas y personalizadas
- * 6. GRAFICO DONUT SVG - Renderizado de graficos
- * 7. MODAL - Sistema de modales reutilizable
- * 8. TEMA - Modo claro/oscuro
- * 9. SIDEBAR - Menu lateral
- * 10. TABS - Navegacion entre paneles
- * 11. HOGAR - Integrantes y distribucion
- * 12. PERSONAL - Movimientos, filtros, render
- * 13. METAS - Metas financieras y presupuestos por categoria
- * 14. RESUMEN MENSUAL - Vista mensual y exportar CSV
- * 15. CALCULADORA - Calculadora completa + mini modal
- * 16. CALENDARIO - Fecha y calendario del sidebar
- * 17. INIT - Formateo numerico y event listeners
- *
- * ════════════════════════════════════════════════════════════
- */
-
-/* ══════════════════════════════════════
-   FIREBASE INIT
-══════════════════════════════════════ */
+  /* ══════════════════════════════════════
+     FIREBASE INIT
+  ══════════════════════════════════════ */
   const firebaseConfig = {
     apiKey: "AIzaSyAm1ogHBKfbT5xEa0GBPGxn3JZ9O1FP7k4",
     authDomain: "control-de-usuarios-17170.firebaseapp.com",
@@ -140,7 +106,7 @@
     }
     try {
       await auth.sendPasswordResetEmail(email);
-      showAuthOk('Se envio un enlace de recuperacion a ' + email + '. Revisa tu bandeja de entrada.');
+      showAuthOk('Se envio un enlace de recuperacion a ' + email + '. Revisa tu bandeja de entrada y la carpeta de Spam/Correo no deseado.');
     } catch (err) {
       let msg = 'Error al enviar el correo';
       switch (err.code) {
@@ -185,7 +151,9 @@
         budgetLimit = data.budget_limit || 0;
         metasData = data.metas || { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
         customCategories = data.custom_categories || [];
+        cycleStartDay = data.cycle_start_day || 1;
         refreshCategoryData();
+        if (document.getElementById('cycleLabel')) document.getElementById('cycleLabel').textContent = cycleStartDay;
         console.log('✅ Datos cargados desde Firestore:', {ints: ints.length, movs: movs.length});
       } else {
         // New user — start fresh
@@ -223,6 +191,7 @@
         budget_limit: budgetLimit,
         metas: metasData,
         custom_categories: customCategories,
+        cycle_start_day: cycleStartDay,
         updated_at: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
       console.log('✅ Datos guardados en Firestore');
@@ -387,7 +356,44 @@
 
   function getCurrentMonthYear() {
     const now = new Date();
-    return { month: now.getMonth(), year: now.getFullYear() };
+    return getCycleForDate(now);
+  }
+
+  // Returns {month, year, startDate, endDate} for the cycle that contains the given date
+  function getCycleForDate(date) {
+    const day = date.getDate();
+    let month, year;
+
+    if (cycleStartDay === 1) {
+      // Normal calendar month
+      month = date.getMonth();
+      year = date.getFullYear();
+    } else {
+      // Custom cycle: if today is before the start day, we're in the previous cycle
+      if (day < cycleStartDay) {
+        // We're in cycle that started last month
+        const prev = new Date(date.getFullYear(), date.getMonth() - 1, 1);
+        month = prev.getMonth();
+        year = prev.getFullYear();
+      } else {
+        // We're in cycle that started this month
+        month = date.getMonth();
+        year = date.getFullYear();
+      }
+    }
+    return { month, year };
+  }
+
+  // Check if a timestamp falls within a given cycle (month/year)
+  function isInCycle(ts, targetMonth, targetYear) {
+    const d = new Date(ts);
+    if (cycleStartDay === 1) {
+      return d.getMonth() === targetMonth && d.getFullYear() === targetYear;
+    }
+    // Custom cycle: from startDay of targetMonth/Year to startDay-1 of next month
+    const cycleStart = new Date(targetYear, targetMonth, cycleStartDay);
+    const cycleEnd = new Date(targetYear, targetMonth + 1, cycleStartDay);
+    return d >= cycleStart && d < cycleEnd;
   }
 
   /* ══════════════════════════════════════
@@ -592,8 +598,7 @@
     return movs.filter(m => {
       if (m.t !== 'gasto' || !m.rec) return false;
       if (!getFijosCats().includes(m.c)) return false;
-      const d = new Date(m.ts || m.id);
-      return d.getMonth() === month && d.getFullYear() === year;
+      return isInCycle(m.ts || m.id, month, year);
     });
   }
 
@@ -663,6 +668,7 @@
   let filtP = 'todos';
   let budgetLimit = 0;
   let metasData = { emergencia_total: 0, ahorro_asignaciones: [], gustos_asignaciones: [] };
+  let cycleStartDay = 1; // Dia de inicio del ciclo mensual (1 = calendario normal)
 
   function addMov(){
     const d = document.getElementById('pDesc').value.trim();
@@ -782,8 +788,7 @@
     // Gustos y salidas (AUTO: from Entretenimiento + Ropa categories this month)
     const gustosActual = movs.filter(m => {
       if (m.t !== 'gasto') return false;
-      const d = new Date(m.ts || m.id);
-      return d.getMonth() === month && d.getFullYear() === year && getGustosCats().includes(m.c);
+      return isInCycle(m.ts || m.id, month, year) && getGustosCats().includes(m.c);
     }).reduce((s, m) => s + m.v, 0);
     const gustosPct = targetGustos > 0 ? Math.min((gustosActual / targetGustos) * 100, 100) : 0;
     document.getElementById('metaGustosTarget').textContent = fmt(targetGustos);
@@ -796,8 +801,7 @@
     // Gastos fijos (AUTO: from fixed categories marked as recurrent this month)
     const fijosMes = movs.filter(m => {
       if (m.t !== 'gasto') return false;
-      const d = new Date(m.ts || m.id);
-      return d.getMonth() === month && d.getFullYear() === year && m.rec && getFijosCats().includes(m.c);
+      return isInCycle(m.ts || m.id, month, year) && m.rec && getFijosCats().includes(m.c);
     }).reduce((s, m) => s + m.v, 0);
     const fijosPct = targetFijos > 0 ? Math.min((fijosMes / targetFijos) * 100, 100) : 0;
     document.getElementById('metaFijosTarget').textContent = fmt(targetFijos);
@@ -926,8 +930,7 @@
       const limit = budgets[cat];
       const spent = movs.filter(m => {
         if (m.t !== 'gasto' || m.c !== cat) return false;
-        const d = new Date(m.ts || m.id);
-        return d.getMonth() === month && d.getFullYear() === year;
+        return isInCycle(m.ts || m.id, month, year);
       }).reduce((s, m) => s + m.v, 0);
 
       const pct = Math.min((spent / limit) * 100, 100);
@@ -962,6 +965,20 @@
   /* ══════════════════════════════════════
      RESUMEN MENSUAL
   ══════════════════════════════════════ */
+  function configurarCiclo() {
+    const val = prompt('¿Que dia del mes inicia tu ciclo financiero?\n\n(Ej: 1 = calendario normal, 26 = del 26 al 25)', cycleStartDay);
+    if (val === null) return;
+    const num = parseInt(val);
+    if (isNaN(num) || num < 1 || num > 28) {
+      alert('Ingresa un numero entre 1 y 28');
+      return;
+    }
+    cycleStartDay = num;
+    document.getElementById('cycleLabel').textContent = num;
+    scheduleSave();
+    renderResumen();
+  }
+
   function initResumen(){
     const anioSel = document.getElementById('rAnio');
     const hoy = new Date();
@@ -992,8 +1009,7 @@
 
     fijos.forEach(m => {
       const exists = movs.some(exist => {
-        const d = new Date(exist.ts || exist.id);
-        return d.getMonth()===mes && d.getFullYear()===anio && exist.d===m.d && exist.v===m.v;
+        return isInCycle(exist.ts || exist.id, mes, anio) && exist.d===m.d && exist.v===m.v;
       });
       if (!exists) {
         movs.unshift({
@@ -1017,8 +1033,7 @@
     const anio = parseInt(document.getElementById('rAnio').value);
 
     const delMes = movs.filter(m=>{
-      const d = new Date(m.ts || m.id);
-      return d.getMonth()===mes && d.getFullYear()===anio;
+      return isInCycle(m.ts || m.id, mes, anio);
     });
 
     const rStats   = document.getElementById('rStats');
@@ -1091,8 +1106,7 @@
     const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
     const delMes = movs.filter(m => {
-      const d = new Date(m.ts || m.id);
-      return d.getMonth() === mes && d.getFullYear() === anio;
+      return isInCycle(m.ts || m.id, mes, anio);
     });
 
     if (!delMes.length) {
