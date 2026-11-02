@@ -49,3 +49,34 @@ Aplicación web de control financiero personal y del hogar con sincronización e
 
 ## Estructura del Proyecto
 
+```
+calculadora-de-gastos/
+├── index.html              # App principal (login + app completa)
+├── index2.html             # Versión alternativa
+├── negocio.html            # Vista enfocada en gastos de negocio
+├── respaldo-index.html     # Respaldo anterior
+├── css/styles.css          # Estilos globales con modo oscuro/claro
+├── js/app.js               # Lógica completa: Firebase, UI, finanzas
+├── tests/
+│   ├── tests.html          # Suite de pruebas visual
+│   └── run-tests.js        # Runner de pruebas
+└── backup_pre_mejoras/     # Respaldo antes de refactorizaciones grandes
+```
+
+## Cómo usar
+
+1. Abre `index.html` en el navegador (requiere conexión para Firebase)
+2. Regístrate con email y contraseña o inicia sesión
+3. Navega por las secciones usando el menú lateral
+
+## Tecnologías
+
+- HTML / CSS / JS vanilla
+- Firebase 10 (Auth + Firestore)
+- Sin frameworks ni bundler — carga directa en el navegador
+
+## Privacidad y datos
+
+- Los datos se almacenan en **Firebase Firestore** bajo la cuenta del usuario
+- Cada usuario ve únicamente sus propios datos
+- La API key incluida es la anon key pública del proyecto, protegida por reglas Firestore
